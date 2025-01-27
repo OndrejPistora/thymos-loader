@@ -23,8 +23,8 @@ class SerialApp:
         self.populate_serial_ports()
 
         # Connect buttons to their respective actions
-        self.form.connectButton.clicked.connect(self.connect_serial)
-        self.form.startButton.clicked.connect(self.send_command_start)
+        self.form.buttonConnect.clicked.connect(self.connect_serial)
+        self.form.buttonStart.clicked.connect(self.send_command_start)
         self.form.buttonSend.clicked.connect(self.send_command_line)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
@@ -41,12 +41,12 @@ class SerialApp:
 
     def populate_serial_ports(self):
         """Populate the ComboBox with available serial ports."""
-        self.form.serialPortComboBox.clear()
+        self.form.serialPortSelection.clear()
         ports = list_ports.comports()
         for port in ports:
-            self.form.serialPortComboBox.addItem(port.device)
+            self.form.serialPortSelection.addItem(port.device)
         if ports:
-            self.form.serialPortComboBox.setCurrentIndex(0)
+            self.form.serialPortSelection.setCurrentIndex(0)
 
     def connect_serial(self):
         """Connect to the selected serial port."""
@@ -55,20 +55,30 @@ class SerialApp:
             self.serial.close()
             self.connected = False
             self.serial_read_timer.stop()
-            self.form.connectButton.setText("Connect")
-            self.form.labelConnection.setText("Disconnected")  # Update connection status
             self.show_message("Disconnected from serial device.")
         else:
             try:
-                selected_port = self.form.serialPortComboBox.currentText()
+                selected_port = self.form.serialPortSelection.currentText()
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
                 self.connected = True
                 self.serial_read_timer.start(100)  # Start reading every 100ms
-                self.form.connectButton.setText("Disconnect")
-                self.form.labelConnection.setText(f"Connected")  # Update connection status
+                self.set_connection_status(True)
             except Exception as e:
+                self.set_connection_status(False)
                 self.show_message(f"Failed to connect: {e}", error=True)
-                self.form.labelConnection.setText("Failed")  # Handle error case
+
+    def set_connection_status(self, status):
+        """Update UI based on connection status."""
+        if status:
+            self.form.labelConnection.setText("Connected")
+            self.form.buttonConnect.setText("Disconnect")
+            self.form.labelConnection.setStyleSheet("background-color: green; color: white;")  # Set background to green
+        else:
+            self.form.labelConnection.setText("Disconnected")
+            self.form.buttonConnect.setText("Connect")
+            self.form.labelConnection.setStyleSheet("background-color: gray; color: white;")  # Set background to red
+            
+
 
     def send_command(self, command):
         """Send a command to the connected serial device."""
@@ -76,7 +86,7 @@ class SerialApp:
             self.show_message("Please connect to a serial device first.", error=True)
             return
         try:
-            self.serial.write(f"{command}\n".encode())  # Send the command
+            self.serial.write(f"{command}".encode())  # Send the command
             self.form.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
@@ -110,8 +120,15 @@ class SerialApp:
         """Read data from the serial port and display it in the QTextEdit."""
         if self.connected and self.serial.in_waiting > 0:
             try:
-                data = self.serial.readline().decode().strip()
-                self.form.commandLineOutput.append(data)  # Append data to the QTextEdit
+                # Read all available data from the serial buffer
+                raw_data = self.serial.read(self.serial.in_waiting).decode()
+                
+                # Split the data into individual lines
+                lines = raw_data.strip().split("\n")
+                
+                # Append each line to the QTextEdit
+                for line in lines:
+                    self.form.commandLineOutput.append(line.strip())
             except Exception as e:
                 self.show_message(f"Failed to read data: {e}", error=True)
 
