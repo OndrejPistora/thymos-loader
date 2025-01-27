@@ -20,7 +20,7 @@
       <x>130</x>
       <y>20</y>
       <width>751</width>
-      <height>71</height>
+      <height>281</height>
      </rect>
     </property>
    </widget>
@@ -28,7 +28,7 @@
     <property name="geometry">
      <rect>
       <x>940</x>
-      <y>150</y>
+      <y>210</y>
       <width>113</width>
       <height>32</height>
      </rect>
@@ -40,9 +40,9 @@
    <widget class="QPushButton" name="buttonConnect">
     <property name="geometry">
      <rect>
-      <x>940</x>
+      <x>932</x>
       <y>50</y>
-      <width>113</width>
+      <width>121</width>
       <height>32</height>
      </rect>
     </property>
@@ -53,9 +53,9 @@
    <widget class="QLabel" name="labelConnection">
     <property name="geometry">
      <rect>
-      <x>950</x>
+      <x>940</x>
       <y>80</y>
-      <width>101</width>
+      <width>111</width>
       <height>20</height>
      </rect>
     </property>
@@ -72,7 +72,7 @@
       <x>50</x>
       <y>20</y>
       <width>21</width>
-      <height>501</height>
+      <height>671</height>
      </rect>
     </property>
     <property name="value">
@@ -88,7 +88,7 @@
       <x>80</x>
       <y>20</y>
       <width>21</width>
-      <height>501</height>
+      <height>671</height>
      </rect>
     </property>
     <property name="value">
@@ -104,7 +104,7 @@
       <x>20</x>
       <y>20</y>
       <width>21</width>
-      <height>501</height>
+      <height>671</height>
      </rect>
     </property>
     <property name="value">
@@ -118,7 +118,7 @@
     <property name="geometry">
      <rect>
       <x>950</x>
-      <y>200</y>
+      <y>260</y>
       <width>101</width>
       <height>91</height>
      </rect>
@@ -131,7 +131,7 @@
     <property name="geometry">
      <rect>
       <x>950</x>
-      <y>290</y>
+      <y>350</y>
       <width>101</width>
       <height>91</height>
      </rect>
@@ -154,9 +154,9 @@
     <property name="geometry">
      <rect>
       <x>130</x>
-      <y>121</y>
+      <y>321</y>
       <width>751</width>
-      <height>531</height>
+      <height>331</height>
      </rect>
     </property>
    </widget>
@@ -207,6 +207,19 @@
     </property>
     <property name="text">
      <string>Calibrate</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonTare">
+    <property name="geometry">
+     <rect>
+      <x>940</x>
+      <y>150</y>
+      <width>113</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Tare</string>
     </property>
    </widget>
   </widget>

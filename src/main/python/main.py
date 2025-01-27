@@ -26,6 +26,8 @@ class SerialApp:
         self.form.buttonConnect.clicked.connect(self.connect_serial)
         self.form.buttonStart.clicked.connect(self.send_command_start)
         self.form.buttonSend.clicked.connect(self.send_command_line)
+        self.form.buttonCalibrate.clicked.connect(self.send_command_calibrate)
+        self.form.buttonTare.clicked.connect(self.send_command_tare)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.form.commandLineEdit.returnPressed.connect(self.send_command_line)
@@ -55,13 +57,13 @@ class SerialApp:
             self.serial.close()
             self.connected = False
             self.serial_read_timer.stop()
-            self.show_message("Disconnected from serial device.")
+            self.set_connection_status(False)
         else:
             try:
                 selected_port = self.form.serialPortSelection.currentText()
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
                 self.connected = True
-                self.serial_read_timer.start(100)  # Start reading every 100ms
+                self.serial_read_timer.start(10)  # Start reading every 10ms
                 self.set_connection_status(True)
             except Exception as e:
                 self.set_connection_status(False)
@@ -93,12 +95,21 @@ class SerialApp:
 
     def send_command_start(self):
         """Send 'Start' command to the connected serial device."""
-        self.send_command("Start")
+        # ToDo start measurement
+        self.send_command("ToDo implement experiment start command")
 
     def send_command_help(self):
         """Send 'Start' command to the connected serial device."""
         self.send_command("HELP")
 
+    def send_command_calibrate(self):
+        """Send 'Start' command to the connected serial device."""
+        self.send_command("MC CALIBRATE")
+
+    def send_command_tare(self):
+        """Send 'Start' command to the connected serial device."""
+        # ToDo send command to tare 
+        self.send_command("ToDo implement tare command")
 
     def send_command_line(self):
         """Send a command manually entered in the commandLineEdit."""
@@ -122,11 +133,7 @@ class SerialApp:
             try:
                 # Read all available data from the serial buffer
                 raw_data = self.serial.read(self.serial.in_waiting).decode()
-                
-                # Split the data into individual lines
                 lines = raw_data.strip().split("\n")
-                
-                # Append each line to the QTextEdit
                 for line in lines:
                     self.form.commandLineOutput.append(line.strip())
             except Exception as e:
