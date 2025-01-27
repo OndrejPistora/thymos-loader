@@ -13,6 +13,9 @@ class SerialApp:
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
 
+        self.serial_buffer = ""
+
+
         # Initialize GUI
         self.app = QApplication([])
         self.window = Window()
@@ -114,8 +117,8 @@ class SerialApp:
             self.show_message("Please connect to a serial device first.", error=True)
             return
         try:
-            self.serial.write(f"{command}".encode())  # Send the command
-            # self.serial.flush()  # Try to make the recieving faster
+            self.serial.write(f"{command}\n".encode())  # Send the command
+            # self.serial.flush()  # Ensure the command is sent immediately
             self.form.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
@@ -143,7 +146,6 @@ class SerialApp:
         if not self.connected:
             self.show_message("Please connect to a serial device first.", error=True)
             return
-
         command = self.form.commandLineEdit.text()  # Get the command from QLineEdit
         if command.strip() == "":
             self.show_message("Command cannot be empty.", error=True)
@@ -156,8 +158,15 @@ class SerialApp:
 
     def draw_graph(self):
         try:
-            for i, data in enumerate(self.graph_data):
-                self.curves[i].setData(self.graph_data[i])  # Update the graph
+            # Check if the tab with the graph is currently visible
+            current_tab_index = self.form.tabWidget.currentIndex()
+
+            if current_tab_index == 1:
+                for i, data in enumerate(self.graph_data):
+                    self.curves[i].setData(self.graph_data[i])  # Update the time based graph
+            elif current_tab_index == 2:
+                for i, data in enumerate(self.graph_data):
+                    self.curves[i].setData(self.graph_data[i])  # Update the position based graph
         except Exception as e:
             print(f"Failed to draw graphs: {e}")
             quit()
@@ -186,8 +195,6 @@ class SerialApp:
         if self.connected and self.serial.in_waiting > 0:
             try:
                 # Initialize a buffer to store incomplete lines
-                if not hasattr(self, "serial_buffer"):
-                    self.serial_buffer = ""
                 raw_data = self.serial.read(self.serial.in_waiting).decode()
                 self.serial_buffer += raw_data
                 lines = self.serial_buffer.split("\n")
