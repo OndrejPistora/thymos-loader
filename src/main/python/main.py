@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QTimer
 from serial import Serial
 from serial.tools import list_ports
+import pyqtgraph as pg
 
 # Load the UI
 Form, Window = uic.loadUiType("src/ui/main.ui")
@@ -36,9 +37,32 @@ class SerialApp:
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
         self.serial_read_timer.timeout.connect(self.read_serial_data)
+        self.graph_timer = QTimer()
+        self.graph_timer.timeout.connect(self.draw_graph)
 
         # Set default label for connection status
         self.form.labelConnection.setText("Not Connected")
+
+        # Setup graph for real-time plotting
+        self.setup_graph()
+
+        # Placeholder for graph data
+        self.graph_data = [[], [], []]  # Three separate lists for loadcells
+
+    def setup_graph(self):
+        """Initialize the graph for real-time plotting."""
+        # Access the PlotWidget directly
+        self.form.graphicsView.setBackground('w')  # Set white background
+        self.form.graphicsView.showGrid(x=True, y=True)  # Show gridlines
+        self.form.graphicsView.setTitle("Load Cell Data")  # Set title
+        self.form.graphicsView.addLegend()  # Add legend
+
+        # Initialize curves for each loadcell
+        self.curves = [
+            self.form.graphicsView.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
+            self.form.graphicsView.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
+            self.form.graphicsView.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
+        ]
 
 
     def populate_serial_ports(self):
@@ -57,6 +81,7 @@ class SerialApp:
             self.serial.close()
             self.connected = False
             self.serial_read_timer.stop()
+            self.graph_timer.stop()
             self.set_connection_status(False)
         else:
             try:
@@ -64,6 +89,7 @@ class SerialApp:
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
                 self.connected = True
                 self.serial_read_timer.start(10)  # Start reading every 10ms
+                self.graph_timer.start(50)  # draw graphs 20 Hz
                 self.set_connection_status(True)
             except Exception as e:
                 self.set_connection_status(False)
@@ -126,15 +152,27 @@ class SerialApp:
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
+    def draw_graph(self):
+        try:
+            for i, data in enumerate(self.graph_data):
+                self.curves[i].setData(self.graph_data[i])  # Update the graph
+        except Exception as e:
+            print(f"Failed to draw graphs: {e}")
+            quit()
+
     def update_loadcells(self, loadcells):
         """Update the loadcell values in the UI."""
         try:
-            self.form.loadcell1.setValue(loadcells[0])
-            self.form.loadcell2.setValue(loadcells[1])
-            self.form.loadcell3.setValue(loadcells[2])
+            for i, load in enumerate(loadcells):
+                self.graph_data[i].append(load)  # Add the new value to the graph data
+                self.graph_data[i] = self.graph_data[i][-4000:]  # Keep the last 100 points
+            self.form.loadcell1.setValue(int(loadcells[0]))
+            self.form.loadcell2.setValue(int(loadcells[1]))
+            self.form.loadcell3.setValue(int(loadcells[2]))
         except Exception as e:
-            print(f"Failed to update loadcells: {e}", error=True)
+            print(f"Failed to update loadcells: {e}")
             quit()
+
 
 
     def read_serial_data(self):
@@ -148,6 +186,7 @@ class SerialApp:
                 self.serial_buffer += raw_data
                 lines = self.serial_buffer.split("\n")
                 self.serial_buffer = lines[-1]
+
                 # Process all complete lines
                 for line in lines[:-1]:  # Skip the incomplete last line
                     line = line.strip()
@@ -160,8 +199,8 @@ class SerialApp:
                         curVel = data[2]
                         loadcells = [data[3], data[4], data[5]]
 
-                        # Convert from string to int
-                        loadcells = [int(float(i)) for i in loadcells]
+                        # Convert from string to float for plotting
+                        loadcells = [float(i) for i in loadcells]
                         self.update_loadcells(loadcells)
                     else:  # Handle other data
                         self.form.commandLineOutput.append(line)
