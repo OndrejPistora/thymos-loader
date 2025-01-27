@@ -78,9 +78,7 @@ class SerialApp:
         else:
             self.form.labelConnection.setText("Disconnected")
             self.form.buttonConnect.setText("Connect")
-            self.form.labelConnection.setStyleSheet("background-color: gray; color: white;")  # Set background to red
-            
-
+            self.form.labelConnection.setStyleSheet("")
 
     def send_command(self, command):
         """Send a command to the connected serial device."""
@@ -89,6 +87,7 @@ class SerialApp:
             return
         try:
             self.serial.write(f"{command}".encode())  # Send the command
+            # self.serial.flush()  # Try to make the recieving faster
             self.form.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
@@ -127,6 +126,17 @@ class SerialApp:
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
+    def update_loadcells(self, loadcells):
+        """Update the loadcell values in the UI."""
+        try:
+            self.form.loadcell1.setValue(loadcells[0])
+            self.form.loadcell2.setValue(loadcells[1])
+            self.form.loadcell3.setValue(loadcells[2])
+        except Exception as e:
+            print(f"Failed to update loadcells: {e}", error=True)
+            quit()
+
+
     def read_serial_data(self):
         """Read data from the serial port and display it in the QTextEdit."""
         if self.connected and self.serial.in_waiting > 0:
@@ -135,7 +145,20 @@ class SerialApp:
                 raw_data = self.serial.read(self.serial.in_waiting).decode()
                 lines = raw_data.strip().split("\n")
                 for line in lines:
-                    self.form.commandLineOutput.append(line.strip())
+                    if line.startswith("DS"):  # machine data received
+                        # DS925049089,0.00,0.00,0.00,53.47,0.00
+                        print(line)
+                        line = line.strip()[2:]
+                        data = line.split(",")
+                        timestamp = data[0]
+                        curPos = data[1]
+                        curVel = data[2]
+                        loadcells = [data[3], data[4], data[5]]
+                        #convert from string to int
+                        loadcells = [int(float(i)) for i in loadcells]
+                        self.update_loadcells(loadcells)
+                    else:
+                        self.form.commandLineOutput.append(line.strip())
             except Exception as e:
                 self.show_message(f"Failed to read data: {e}", error=True)
 
