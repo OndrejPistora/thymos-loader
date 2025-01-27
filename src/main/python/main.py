@@ -23,7 +23,7 @@ class SerialApp:
         self.form.setupUi(self.window)
         self.window.show()
 
-        # Populate the ComboBox with available serial ports
+        # Populate the ComboBox with available serial ports 
         self.populate_serial_ports()
 
         # Connect buttons to their respective actions
@@ -42,6 +42,16 @@ class SerialApp:
         self.serial_read_timer.timeout.connect(self.read_serial_data)
         self.graph_timer = QTimer()
         self.graph_timer.timeout.connect(self.draw_graph)
+        self.move_timer = QTimer()
+        self.move_timer.timeout.connect(self.manual_movement_command)
+        self.moving_dir = ""
+
+        # Button Press Event
+        self.form.buttonUp.pressed.connect(lambda: self.start_moving("UP"))
+        self.form.buttonDown.pressed.connect(lambda: self.start_moving("DOWN"))
+        # Button Release Event
+        self.form.buttonUp.released.connect(lambda: self.stop_moving())
+        self.form.buttonDown.released.connect(lambda: self.stop_moving())
 
         # Set default label for connection status
         self.form.labelConnection.setText("Not Connected")
@@ -53,10 +63,29 @@ class SerialApp:
         self.loadcell_oversampling_data = [[], [], []]
         self.graph_data = [[], [], []]  # Three separate lists for loadcells
 
+    def start_moving(self, dir):
+        """Start sending movement commands for UP or DOWN."""
+        self.moving_dir = dir
+        # ToDo change dist based on current velocity?
+        self.move_timer.start(50)
+
+    def stop_moving(self):
+        """Stop sending movement commands."""
+        self.move_timer.stop()
+        self.send_command(f"MC STOP")
+
+    def manual_movement_command(self):
+        """Send manual movement commands."""
+        DIST = 2
+        if self.moving_dir == "UP":
+            self.send_command(f"MC MOVEBY USER {-DIST}")
+        elif self.moving_dir == "DOWN":
+            self.send_command(f"MC MOVEBY USER {DIST}")
+
     def setup_graph(self):
         """Initialize the graph for real-time plotting."""
         # Access the PlotWidget directly
-        self.form.graphTimeBased.setBackground('w')  # Set white background
+        # self.form.graphTimeBased.setBackground('w')  # Set white background
         self.form.graphTimeBased.showGrid(x=True, y=True)  # Show gridlines
         self.form.graphTimeBased.setTitle("Load Cell Data")  # Set title
         self.form.graphTimeBased.addLegend()  # Add legend
