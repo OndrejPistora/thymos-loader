@@ -27,6 +27,9 @@ class SerialApp:
         self.form.startButton.clicked.connect(self.start_command)
         self.form.buttonSend.clicked.connect(self.send_manual_command)
 
+        # Trigger sendButton when Enter is pressed in commandLineEdit
+        self.form.lineEdit.returnPressed.connect(self.form.buttonSend.click)
+
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
         self.serial_read_timer.timeout.connect(self.read_serial_data)
