@@ -24,17 +24,20 @@ class SerialApp:
 
         # Connect buttons to their respective actions
         self.form.connectButton.clicked.connect(self.connect_serial)
-        self.form.startButton.clicked.connect(self.start_command)
-        self.form.buttonSend.clicked.connect(self.send_manual_command)
+        self.form.startButton.clicked.connect(self.send_command_start)
+        self.form.buttonSend.clicked.connect(self.send_command_line)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
-        self.form.commandLineEdit.returnPressed.connect(self.form.buttonSend.click)
+        self.form.commandLineEdit.returnPressed.connect(self.send_command_line)
+        self.form.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
         self.serial_read_timer.timeout.connect(self.read_serial_data)
 
-        self.form.labelConnection.setText("Not Connected")  # Default connection status
+        # Set default label for connection status
+        self.form.labelConnection.setText("Not Connected")
+
 
     def populate_serial_ports(self):
         """Populate the ComboBox with available serial ports."""
@@ -62,26 +65,33 @@ class SerialApp:
                 self.connected = True
                 self.serial_read_timer.start(100)  # Start reading every 100ms
                 self.form.connectButton.setText("Disconnect")
-                self.form.labelConnection.setText(f"Connected to {selected_port}")  # Update connection status
-                self.show_message(f"Connected to {selected_port}")
+                self.form.labelConnection.setText(f"Connected")  # Update connection status
             except Exception as e:
                 self.show_message(f"Failed to connect: {e}", error=True)
-                self.form.labelConnection.setText("Connection Failed")  # Handle error case
+                self.form.labelConnection.setText("Failed")  # Handle error case
 
-    def start_command(self):
-        """Send 'Start' command to the connected serial device."""
+    def send_command(self, command):
+        """Send a command to the connected serial device."""
         if not self.connected:
             self.show_message("Please connect to a serial device first.", error=True)
             return
-
         try:
-            self.serial.write(b"Start\n")  # Send the 'Start' command
-            self.show_message("Command 'Start' sent.")
+            self.serial.write(f"{command}\n".encode())  # Send the command
+            self.form.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
-    def send_manual_command(self):
-        """Send a command manually entered in the QLineEdit."""
+    def send_command_start(self):
+        """Send 'Start' command to the connected serial device."""
+        self.send_command("Start")
+
+    def send_command_help(self):
+        """Send 'Start' command to the connected serial device."""
+        self.send_command("HELP")
+
+
+    def send_command_line(self):
+        """Send a command manually entered in the commandLineEdit."""
         if not self.connected:
             self.show_message("Please connect to a serial device first.", error=True)
             return
@@ -90,9 +100,8 @@ class SerialApp:
         if command.strip() == "":
             self.show_message("Command cannot be empty.", error=True)
             return
-
         try:
-            self.serial.write(f"{command}\n".encode())  # Send the command
+            self.send_command(command)  # Send the command
             self.form.commandLineEdit.clear()  # Clear the input field
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
