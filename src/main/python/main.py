@@ -93,7 +93,6 @@ class SerialApp:
 
         try:
             self.serial.write(f"{command}\n".encode())  # Send the command
-            self.show_message(f"Command '{command}' sent.")
             self.form.commandLineEdit.clear()  # Clear the input field
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
