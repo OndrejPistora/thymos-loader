@@ -141,12 +141,17 @@ class SerialApp:
         """Read data from the serial port and display it in the QTextEdit."""
         if self.connected and self.serial.in_waiting > 0:
             try:
-                # Read all available data from the serial buffer
+                # Initialize a buffer to store incomplete lines
+                if not hasattr(self, "serial_buffer"):
+                    self.serial_buffer = ""
                 raw_data = self.serial.read(self.serial.in_waiting).decode()
-                lines = raw_data.strip().split("\n")
-                for line in lines:
-                    if line.startswith("DS"):  # machine data received
-                        # DS925049089,0.00,0.00,0.00,53.47,0.00
+                self.serial_buffer += raw_data
+                lines = self.serial_buffer.split("\n")
+                self.serial_buffer = lines[-1]
+                # Process all complete lines
+                for line in lines[:-1]:  # Skip the incomplete last line
+                    line = line.strip()
+                    if line.startswith("DS"):  # Process machine data
                         print(line)
                         line = line.strip()[2:]
                         data = line.split(",")
@@ -154,11 +159,12 @@ class SerialApp:
                         curPos = data[1]
                         curVel = data[2]
                         loadcells = [data[3], data[4], data[5]]
-                        #convert from string to int
+
+                        # Convert from string to int
                         loadcells = [int(float(i)) for i in loadcells]
                         self.update_loadcells(loadcells)
-                    else:
-                        self.form.commandLineOutput.append(line.strip())
+                    else:  # Handle other data
+                        self.form.commandLineOutput.append(line)
             except Exception as e:
                 self.show_message(f"Failed to read data: {e}", error=True)
 
