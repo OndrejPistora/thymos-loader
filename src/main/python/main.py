@@ -47,21 +47,22 @@ class SerialApp:
         self.setup_graph()
 
         # Placeholder for graph data
+        self.loadcell_oversampling_data = [[], [], []]
         self.graph_data = [[], [], []]  # Three separate lists for loadcells
 
     def setup_graph(self):
         """Initialize the graph for real-time plotting."""
         # Access the PlotWidget directly
-        self.form.graphicsView.setBackground('w')  # Set white background
-        self.form.graphicsView.showGrid(x=True, y=True)  # Show gridlines
-        self.form.graphicsView.setTitle("Load Cell Data")  # Set title
-        self.form.graphicsView.addLegend()  # Add legend
+        self.form.graphTimeBased.setBackground('w')  # Set white background
+        self.form.graphTimeBased.showGrid(x=True, y=True)  # Show gridlines
+        self.form.graphTimeBased.setTitle("Load Cell Data")  # Set title
+        self.form.graphTimeBased.addLegend()  # Add legend
 
         # Initialize curves for each loadcell
         self.curves = [
-            self.form.graphicsView.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
-            self.form.graphicsView.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
-            self.form.graphicsView.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
+            self.form.graphTimeBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
+            self.form.graphTimeBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
+            self.form.graphTimeBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
         ]
 
 
@@ -87,6 +88,7 @@ class SerialApp:
             try:
                 selected_port = self.form.serialPortSelection.currentText()
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
+                self.serial.flush()
                 self.connected = True
                 self.serial_read_timer.start(10)  # Start reading every 10ms
                 self.graph_timer.start(50)  # draw graphs 20 Hz
@@ -164,8 +166,12 @@ class SerialApp:
         """Update the loadcell values in the UI."""
         try:
             for i, load in enumerate(loadcells):
-                self.graph_data[i].append(load)  # Add the new value to the graph data
-                self.graph_data[i] = self.graph_data[i][-4000:]  # Keep the last 100 points
+                self.loadcell_oversampling_data[i].append(load)
+                if len(self.loadcell_oversampling_data[i]) >= 10:
+                    self.graph_data[i].append(sum(self.loadcell_oversampling_data[i]))
+                    self.loadcell_oversampling_data[i] = []
+                    self.graph_data[i] = self.graph_data[i][-400:]  # Keep the last X points
+
             self.form.loadcell1.setValue(int(loadcells[0]))
             self.form.loadcell2.setValue(int(loadcells[1]))
             self.form.loadcell3.setValue(int(loadcells[2]))
@@ -191,7 +197,7 @@ class SerialApp:
                 for line in lines[:-1]:  # Skip the incomplete last line
                     line = line.strip()
                     if line.startswith("DS"):  # Process machine data
-                        print(line)
+                        # print(line)
                         line = line.strip()[2:]
                         data = line.split(",")
                         timestamp = data[0]

@@ -14,16 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="PlotWidget" name="graphicsView">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>20</y>
-      <width>751</width>
-      <height>281</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="buttonStart">
     <property name="geometry">
      <rect>
@@ -69,7 +59,7 @@
    <widget class="QProgressBar" name="loadcell2">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>30</x>
       <y>20</y>
       <width>21</width>
       <height>671</height>
@@ -85,7 +75,7 @@
    <widget class="QProgressBar" name="loadcell3">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>50</x>
       <y>20</y>
       <width>21</width>
       <height>671</height>
@@ -101,7 +91,7 @@
    <widget class="QProgressBar" name="loadcell1">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>20</y>
       <width>21</width>
       <height>671</height>
@@ -150,52 +140,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTextBrowser" name="commandLineOutput">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>321</y>
-      <width>751</width>
-      <height>331</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="commandLineEdit">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>670</y>
-      <width>561</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="buttonSend">
-    <property name="geometry">
-     <rect>
-      <x>690</x>
-      <y>660</y>
-      <width>101</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>-&gt; Send</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="buttonHelp">
-    <property name="geometry">
-     <rect>
-      <x>790</x>
-      <y>660</y>
-      <width>91</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Help</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="buttonCalibrate">
     <property name="geometry">
      <rect>
@@ -221,6 +165,100 @@
     <property name="text">
      <string>Tare</string>
     </property>
+   </widget>
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>10</y>
+      <width>801</width>
+      <height>701</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Console</string>
+     </attribute>
+     <widget class="QTextBrowser" name="commandLineOutput">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>751</width>
+        <height>601</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="commandLineEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>630</y>
+        <width>561</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="buttonSend">
+      <property name="geometry">
+       <rect>
+        <x>580</x>
+        <y>620</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>-&gt; Send</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="buttonHelp">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>620</y>
+        <width>91</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Help</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Time based graph</string>
+     </attribute>
+     <widget class="PlotWidget" name="graphTimeBased">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>751</width>
+        <height>641</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Position based graph</string>
+     </attribute>
+     <widget class="PlotWidget" name="graphPosBased">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>751</width>
+        <height>641</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
