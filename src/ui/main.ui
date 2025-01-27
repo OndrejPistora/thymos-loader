@@ -150,7 +150,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTextBrowser" name="textBrowser">
+   <widget class="QTextBrowser" name="commandLineOutput">
     <property name="geometry">
      <rect>
       <x>130</x>
@@ -160,7 +160,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="commandLineEdit">
     <property name="geometry">
      <rect>
       <x>130</x>

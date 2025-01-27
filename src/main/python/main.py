@@ -28,11 +28,13 @@ class SerialApp:
         self.form.buttonSend.clicked.connect(self.send_manual_command)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
-        self.form.lineEdit.returnPressed.connect(self.form.buttonSend.click)
+        self.form.commandLineEdit.returnPressed.connect(self.form.buttonSend.click)
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
         self.serial_read_timer.timeout.connect(self.read_serial_data)
+
+        self.form.labelConnection.setText("Not Connected")  # Default connection status
 
     def populate_serial_ports(self):
         """Populate the ComboBox with available serial ports."""
@@ -51,6 +53,7 @@ class SerialApp:
             self.connected = False
             self.serial_read_timer.stop()
             self.form.connectButton.setText("Connect")
+            self.form.labelConnection.setText("Disconnected")  # Update connection status
             self.show_message("Disconnected from serial device.")
         else:
             try:
@@ -59,9 +62,11 @@ class SerialApp:
                 self.connected = True
                 self.serial_read_timer.start(100)  # Start reading every 100ms
                 self.form.connectButton.setText("Disconnect")
+                self.form.labelConnection.setText(f"Connected to {selected_port}")  # Update connection status
                 self.show_message(f"Connected to {selected_port}")
             except Exception as e:
                 self.show_message(f"Failed to connect: {e}", error=True)
+                self.form.labelConnection.setText("Connection Failed")  # Handle error case
 
     def start_command(self):
         """Send 'Start' command to the connected serial device."""
@@ -98,7 +103,7 @@ class SerialApp:
         if self.connected and self.serial.in_waiting > 0:
             try:
                 data = self.serial.readline().decode().strip()
-                self.form.outputTextEdit.append(data)  # Append data to the QTextEdit
+                self.form.commandLineOutput.append(data)  # Append data to the QTextEdit
             except Exception as e:
                 self.show_message(f"Failed to read data: {e}", error=True)
 
