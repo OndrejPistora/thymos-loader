@@ -24,7 +24,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="startButton">
     <property name="geometry">
      <rect>
       <x>660</x>
@@ -37,7 +37,7 @@
      <string>Start</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="connectButton">
     <property name="geometry">
      <rect>
       <x>660</x>
@@ -50,7 +50,7 @@
      <string>Connect</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="labelConnection">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -114,7 +114,7 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="upButton">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -127,7 +127,7 @@
      <string>UP</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="downButton">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -138,6 +138,16 @@
     </property>
     <property name="text">
      <string>DOWN</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="serialPortComboBox">
+    <property name="geometry">
+     <rect>
+      <x>670</x>
+      <y>20</y>
+      <width>104</width>
+      <height>26</height>
+     </rect>
     </property>
    </widget>
   </widget>
