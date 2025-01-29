@@ -27,3 +27,7 @@ pip install -r requirements.txt
 ```sh
 python src/main/python/main.py
 ```
+
+## GUI
+
+![Thymos Control UI](./GUI.png)
