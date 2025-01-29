@@ -1,29 +1,29 @@
-# Test of loader app with Qt and Python
+# Thymos Control
 
-## Qt designer
+## Intro
 
-<https://build-system.fman.io/qt-designer-download>
+Software to use Thymos laoding machines.
 
-pip install pyside6-tools  # For PySide
-pyside6-uic your_ui_file.ui -o your_ui_file.py
+## Python install
 
-## realtime graphs
+requirements: python, git
 
-pip install pyqtgraph
+- install virtual environment
 
-## pyserial
+```sh
+python -m venv .venv
+MAC source .venv/bin/activate
+WIN .venv\Scripts\activate.bat
+```
 
-pip install pyserial
+- install requrements
 
-## FBS
+```sh
+pip install -r requirements.txt
+```
 
-<https://github.com/mherrmann/fbs-tutorial>
-fbs startproject
+- run
 
-## inculde graph in qt desinger
-
-<https://www.pythonguis.com/tutorials/pyside6-embed-pyqtgraph-custom-widgets/>
-
-## Python GUIs
-
-<https://www.pythonguis.com/>
+```sh
+python src/main/python/main.py
+```
