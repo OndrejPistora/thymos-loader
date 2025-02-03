@@ -52,10 +52,14 @@ class TyhmosControlApp(QMainWindow):
 
         # Setup graph for real-time plotting
         self.setup_graph_timebased()
+        self.setup_graph_positionbased()
 
         # Placeholder for graph data
         self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
         self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+        self.last_pos = 0
+
+        self.butClear.clicked.connect(self.clear_output)
 
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "stackedWidget")
@@ -77,6 +81,10 @@ class TyhmosControlApp(QMainWindow):
 
         # Set the initial button highlight
         self.switch_page("Connect", self.butConnect)
+
+    def clear_output(self):
+        pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+        self.last_pos = 0
 
     def switch_page(self, page_name, active_button):
         """Switch QStackedWidget page by name."""
@@ -127,15 +135,15 @@ class TyhmosControlApp(QMainWindow):
     def setup_graph_positionbased(self):
         """Initialize the graph for real-time plotting."""
         # Access the PlotWidget directly
-        self.graphPositionBased.showGrid(x=True, y=True)
-        self.graphPositionBased.setTitle("Position Data")
-        self.graphPositionBased.addLegend()
+        self.graphPosBased.showGrid(x=True, y=True)
+        self.graphPosBased.setTitle("Position Data")
+        self.graphPosBased.addLegend()
 
         # Initialize curves for each loadcell
         self.curves_pos = [
-            self.graphPositionBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
-            self.graphPositionBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
-            self.graphPositionBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
+            self.graphPosBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
+            self.graphPosBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
+            self.graphPosBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
         ]
 
 
@@ -231,12 +239,12 @@ class TyhmosControlApp(QMainWindow):
             # Check if the tab with the graph is currently visible
             current_tab_index = self.tabWidget.currentIndex()
 
-            if current_tab_index == 1 and self.graph_time_data[0]:  # Time-based graph
+            if current_tab_index == 0 and self.graph_time_data[0]:  # Time-based graph
                 for i in range(3):
                     x_data, y_data = zip(*self.graph_time_data[i])  # Extract timestamps & values
                     self.curves_time[i].setData(x_data, y_data)
 
-            elif current_tab_index == 2 and self.graph_pos_data[0]:  # Position-based graph
+            elif current_tab_index == 1 and self.graph_pos_data[0]:  # Position-based graph
                 for i in range(3):
                     x_data, y_data = zip(*self.graph_pos_data[i])  # Extract positions & values
                     self.curves_pos[i].setData(x_data, y_data)
@@ -251,13 +259,19 @@ class TyhmosControlApp(QMainWindow):
             timestamp = float(timestamp)
             curPos = float(curPos)
 
+            # Keep only the last X points
+            DATA_POINTS = 4000
+
             for i, load in enumerate(loadcells):
                 self.graph_time_data[i].append((timestamp, load))  # Store time-based data
-                self.graph_pos_data[i].append((curPos, load))      # Store position-based data
+                self.graph_time_data[i] = self.graph_time_data[i][-DATA_POINTS:]
 
-                # Keep only the last 400 points
-                self.graph_time_data[i] = self.graph_time_data[i][-400:]
-                self.graph_pos_data[i] = self.graph_pos_data[i][-400:]
+            if curPos != self.last_pos:
+                for i, load in enumerate(loadcells):
+                    self.graph_pos_data[i].append((curPos, load))      # Store position-based data
+                    self.graph_pos_data[i] = self.graph_pos_data[i][-DATA_POINTS:]
+            self.last_pos = curPos
+
 
             self.loadcell1.setValue(int(loadcells[0]))
             self.loadcell2.setValue(int(loadcells[1]))

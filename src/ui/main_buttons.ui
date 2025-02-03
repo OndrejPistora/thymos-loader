@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
-    <height>708</height>
+    <width>978</width>
+    <height>923</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -190,7 +190,7 @@
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Connect">
         <widget class="QComboBox" name="serialPortSelection">
@@ -1123,6 +1123,19 @@
           <string>Sample index</string>
          </property>
         </widget>
+        <widget class="QPushButton" name="butClear">
+         <property name="geometry">
+          <rect>
+           <x>650</x>
+           <y>220</y>
+           <width>101</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Clear</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="View"/>
        <widget class="QWidget" name="Debug">
@@ -1183,7 +1196,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1016</width>
+     <width>978</width>
      <height>24</height>
     </rect>
    </property>
