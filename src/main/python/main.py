@@ -58,18 +58,36 @@ class TyhmosControlApp(QMainWindow):
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "stackedWidget")
 
-        # Connect buttons to switch pages by name
-        self.butConnect.clicked.connect(lambda: self.switch_page("Connect"))
-        self.butSetup.clicked.connect(lambda: self.switch_page("Setup"))
-        self.butMeasure.clicked.connect(lambda: self.switch_page("Measure"))
-        self.butView.clicked.connect(lambda: self.switch_page("View"))
-        self.butDebug.clicked.connect(lambda: self.switch_page("Debug"))
+        self.nav_buttons = [
+            self.butConnect,  
+            self.butSetup,    
+            self.butMeasure,  
+            self.butView,     
+            self.butDebug     
+        ]
 
-    def switch_page(self, page_name):
+        # Connect buttons to switch pages by name
+        self.butConnect.clicked.connect(lambda: self.switch_page("Connect", self.butConnect))
+        self.butSetup.clicked.connect(lambda: self.switch_page("Setup", self.butSetup))
+        self.butMeasure.clicked.connect(lambda: self.switch_page("Measure", self.butMeasure))
+        self.butView.clicked.connect(lambda: self.switch_page("View", self.butView))
+        self.butDebug.clicked.connect(lambda: self.switch_page("Debug", self.butDebug))
+
+        # Set the initial button highlight
+        self.switch_page("Connect", self.butConnect)
+
+    def switch_page(self, page_name, active_button):
         """Switch QStackedWidget page by name."""
         target_page = self.findChild(QWidget, page_name)
         if target_page:
             self.stackedWidget.setCurrentWidget(target_page)
+
+            # Reset all button colors
+            for button in self.nav_buttons:
+                button.setStyleSheet("")
+
+            # Highlight the active button with a green tint
+            active_button.setStyleSheet("background-color: lightgreen;")
 
     def start_moving(self, dir):
         """Start sending movement commands for UP or DOWN."""
