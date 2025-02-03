@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>823</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>811</width>
+      <height>1022</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="butConnect">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Connect</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="butSetup">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Setup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="butMeasure">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Measure</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="butView">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>View</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="butDebug">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>100</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Debug</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QStackedWidget" name="stackedWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>500</width>
+         <height>500</height>
+        </size>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <widget class="QWidget" name="Connect">
+        <widget class="QComboBox" name="serialPortSelection">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>190</y>
+           <width>200</width>
+           <height>30</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="labelConnection">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>260</y>
+           <width>181</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="buttonConnect">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>220</y>
+           <width>200</width>
+           <height>30</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Connect</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="Setup">
+        <widget class="QPushButton" name="buttonCalibrate">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>40</y>
+           <width>101</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calibrate</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="buttonTare">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>140</y>
+           <width>101</width>
+           <height>91</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Tare</string>
+         </property>
+        </widget>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="geometry">
+          <rect>
+           <x>190</x>
+           <y>40</y>
+           <width>201</width>
+           <height>281</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Move</string>
+         </property>
+         <widget class="QPushButton" name="buttonUp">
+          <property name="geometry">
+           <rect>
+            <x>50</x>
+            <y>60</y>
+            <width>101</width>
+            <height>91</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>UP</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="buttonDown">
+          <property name="geometry">
+           <rect>
+            <x>50</x>
+            <y>160</y>
+            <width>101</width>
+            <height>91</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>DOWN</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QProgressBar" name="loadcell1">
+         <property name="geometry">
+          <rect>
+           <x>490</x>
+           <y>30</y>
+           <width>21</width>
+           <height>481</height>
+          </rect>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+        <widget class="QProgressBar" name="loadcell2">
+         <property name="geometry">
+          <rect>
+           <x>510</x>
+           <y>30</y>
+           <width>21</width>
+           <height>481</height>
+          </rect>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+        <widget class="QProgressBar" name="loadcell3">
+         <property name="geometry">
+          <rect>
+           <x>530</x>
+           <y>30</y>
+           <width>21</width>
+           <height>481</height>
+          </rect>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="Measure"/>
+       <widget class="QWidget" name="View"/>
+       <widget class="QWidget" name="Debug">
+        <widget class="QPushButton" name="buttonSend">
+         <property name="geometry">
+          <rect>
+           <x>480</x>
+           <y>500</y>
+           <width>101</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>-&gt; Send</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="commandLineEdit">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>510</y>
+           <width>471</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QTextBrowser" name="commandLineOutput">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>10</y>
+           <width>661</width>
+           <height>481</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="buttonHelp">
+         <property name="geometry">
+          <rect>
+           <x>580</x>
+           <y>500</y>
+           <width>91</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Help</string>
+         </property>
+        </widget>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>823</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
