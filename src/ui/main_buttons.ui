@@ -232,6 +232,19 @@
           <string>Connect</string>
          </property>
         </widget>
+        <widget class="QPushButton" name="butRefresh">
+         <property name="geometry">
+          <rect>
+           <x>430</x>
+           <y>190</y>
+           <width>81</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="Setup">
         <widget class="QGroupBox" name="groupBox">

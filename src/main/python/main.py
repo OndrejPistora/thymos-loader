@@ -45,6 +45,8 @@ class TyhmosControlApp(QMainWindow):
         self.buttonUp.released.connect(lambda: self.stop_moving())
         self.buttonDown.released.connect(lambda: self.stop_moving())
 
+        self.butRefresth.clicked.connect(self.populate_serial_ports)
+
         # Set default label for connection status
         self.labelConnection.setText("Not Connected")
 
