@@ -1,41 +1,33 @@
 from PyQt6 import uic
-from PyQt6.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget
 from PyQt6.QtCore import QTimer
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
 
-# Load the UI
-Form, Window = uic.loadUiType("src/ui/main.ui")
-
-class SerialApp:
+class TyhmosControlApp(QMainWindow):
     def __init__(self):
+        super().__init__()
+        uic.loadUi("src/ui/main_buttons.ui", self)
+
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
 
         self.serial_buffer = ""
 
-
-        # Initialize GUI
-        self.app = QApplication([])
-        self.window = Window()
-        self.form = Form()
-        self.form.setupUi(self.window)
-        self.window.show()
-
         # Populate the ComboBox with available serial ports 
         self.populate_serial_ports()
 
         # Connect buttons to their respective actions
-        self.form.buttonConnect.clicked.connect(self.connect_serial)
-        self.form.buttonStart.clicked.connect(self.send_command_start)
-        self.form.buttonSend.clicked.connect(self.send_command_line)
-        self.form.buttonCalibrate.clicked.connect(self.send_command_calibrate)
-        self.form.buttonTare.clicked.connect(self.send_command_tare)
+        self.buttonConnect.clicked.connect(self.connect_serial)
+        self.buttonStart.clicked.connect(self.send_command_start)
+        self.buttonSend.clicked.connect(self.send_command_line)
+        self.buttonCalibrate.clicked.connect(self.send_command_calibrate)
+        self.buttonTare.clicked.connect(self.send_command_tare)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
-        self.form.commandLineEdit.returnPressed.connect(self.send_command_line)
-        self.form.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
+        self.commandLineEdit.returnPressed.connect(self.send_command_line)
+        self.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
@@ -47,14 +39,14 @@ class SerialApp:
         self.moving_dir = ""
 
         # Button Press Event
-        self.form.buttonUp.pressed.connect(lambda: self.start_moving("UP"))
-        self.form.buttonDown.pressed.connect(lambda: self.start_moving("DOWN"))
+        self.buttonUp.pressed.connect(lambda: self.start_moving("UP"))
+        self.buttonDown.pressed.connect(lambda: self.start_moving("DOWN"))
         # Button Release Event
-        self.form.buttonUp.released.connect(lambda: self.stop_moving())
-        self.form.buttonDown.released.connect(lambda: self.stop_moving())
+        self.buttonUp.released.connect(lambda: self.stop_moving())
+        self.buttonDown.released.connect(lambda: self.stop_moving())
 
         # Set default label for connection status
-        self.form.labelConnection.setText("Not Connected")
+        self.labelConnection.setText("Not Connected")
 
         # Setup graph for real-time plotting
         self.setup_graph()
@@ -62,6 +54,22 @@ class SerialApp:
         # Placeholder for graph data
         self.loadcell_oversampling_data = [[], [], []]
         self.graph_data = [[], [], []]  # Three separate lists for loadcells
+
+        # Get the StackedWidget
+        self.stackedWidget = self.findChild(QWidget, "stackedWidget")
+
+        # Connect buttons to switch pages by name
+        self.butConnect.clicked.connect(lambda: self.switch_page("Connect"))
+        self.butSetup.clicked.connect(lambda: self.switch_page("Setup"))
+        self.butMeasure.clicked.connect(lambda: self.switch_page("Measure"))
+        self.butView.clicked.connect(lambda: self.switch_page("View"))
+        self.butDebug.clicked.connect(lambda: self.switch_page("Debug"))
+
+    def switch_page(self, page_name):
+        """Switch QStackedWidget page by name."""
+        target_page = self.findChild(QWidget, page_name)
+        if target_page:
+            self.stackedWidget.setCurrentWidget(target_page)
 
     def start_moving(self, dir):
         """Start sending movement commands for UP or DOWN."""
@@ -85,27 +93,27 @@ class SerialApp:
     def setup_graph(self):
         """Initialize the graph for real-time plotting."""
         # Access the PlotWidget directly
-        # self.form.graphTimeBased.setBackground('w')  # Set white background
-        self.form.graphTimeBased.showGrid(x=True, y=True)  # Show gridlines
-        self.form.graphTimeBased.setTitle("Load Cell Data")  # Set title
-        self.form.graphTimeBased.addLegend()  # Add legend
+        # self.graphTimeBased.setBackground('w')  # Set white background
+        self.graphTimeBased.showGrid(x=True, y=True)  # Show gridlines
+        self.graphTimeBased.setTitle("Load Cell Data")  # Set title
+        self.graphTimeBased.addLegend()  # Add legend
 
         # Initialize curves for each loadcell
         self.curves = [
-            self.form.graphTimeBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
-            self.form.graphTimeBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
-            self.form.graphTimeBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
+            self.graphTimeBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
+            self.graphTimeBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
+            self.graphTimeBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
         ]
 
 
     def populate_serial_ports(self):
         """Populate the ComboBox with available serial ports."""
-        self.form.serialPortSelection.clear()
+        self.serialPortSelection.clear()
         ports = list_ports.comports()
         for port in ports:
-            self.form.serialPortSelection.addItem(port.device)
+            self.serialPortSelection.addItem(port.device)
         if ports:
-            self.form.serialPortSelection.setCurrentIndex(0)
+            self.serialPortSelection.setCurrentIndex(0)
 
     def connect_serial(self):
         """Connect to the selected serial port."""
@@ -118,7 +126,7 @@ class SerialApp:
             self.set_connection_status(False)
         else:
             try:
-                selected_port = self.form.serialPortSelection.currentText()
+                selected_port = self.serialPortSelection.currentText()
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
                 self.serial.flush()
                 self.connected = True
@@ -132,13 +140,13 @@ class SerialApp:
     def set_connection_status(self, status):
         """Update UI based on connection status."""
         if status:
-            self.form.labelConnection.setText("Connected")
-            self.form.buttonConnect.setText("Disconnect")
-            self.form.labelConnection.setStyleSheet("background-color: green; color: white;")  # Set background to green
+            self.labelConnection.setText("Connected")
+            self.buttonConnect.setText("Disconnect")
+            self.labelConnection.setStyleSheet("background-color: green; color: white;")  # Set background to green
         else:
-            self.form.labelConnection.setText("Disconnected")
-            self.form.buttonConnect.setText("Connect")
-            self.form.labelConnection.setStyleSheet("")
+            self.labelConnection.setText("Disconnected")
+            self.buttonConnect.setText("Connect")
+            self.labelConnection.setStyleSheet("")
 
     def send_command(self, command):
         """Send a command to the connected serial device."""
@@ -148,7 +156,7 @@ class SerialApp:
         try:
             self.serial.write(f"{command}\n".encode())  # Send the command
             # self.serial.flush()  # Ensure the command is sent immediately
-            self.form.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
+            self.commandLineOutput.append(f">>> {command}")  # Add to output with prefix
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
@@ -175,20 +183,20 @@ class SerialApp:
         if not self.connected:
             self.show_message("Please connect to a serial device first.", error=True)
             return
-        command = self.form.commandLineEdit.text()  # Get the command from QLineEdit
+        command = self.commandLineEdit.text()  # Get the command from QLineEdit
         if command.strip() == "":
             self.show_message("Command cannot be empty.", error=True)
             return
         try:
             self.send_command(command)  # Send the command
-            self.form.commandLineEdit.clear()  # Clear the input field
+            self.commandLineEdit.clear()  # Clear the input field
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
     def draw_graph(self):
         try:
             # Check if the tab with the graph is currently visible
-            current_tab_index = self.form.tabWidget.currentIndex()
+            current_tab_index = self.tabWidget.currentIndex()
 
             if current_tab_index == 1:
                 for i, data in enumerate(self.graph_data):
@@ -210,9 +218,9 @@ class SerialApp:
                     self.loadcell_oversampling_data[i] = []
                     self.graph_data[i] = self.graph_data[i][-400:]  # Keep the last X points
 
-            self.form.loadcell1.setValue(int(loadcells[0]))
-            self.form.loadcell2.setValue(int(loadcells[1]))
-            self.form.loadcell3.setValue(int(loadcells[2]))
+            self.loadcell1.setValue(int(loadcells[0]))
+            self.loadcell2.setValue(int(loadcells[1]))
+            self.loadcell3.setValue(int(loadcells[2]))
         except Exception as e:
             print(f"Failed to update loadcells: {e}")
             quit()
@@ -245,7 +253,7 @@ class SerialApp:
                         loadcells = [float(i) for i in loadcells]
                         self.update_loadcells(loadcells)
                     else:  # Handle other data
-                        self.form.commandLineOutput.append(line)
+                        self.commandLineOutput.append(line)
             except Exception as e:
                 self.show_message(f"Failed to read data: {e}", error=True)
 
@@ -261,5 +269,8 @@ class SerialApp:
         self.app.exec()
 
 if __name__ == "__main__":
-    app = SerialApp()
-    app.run()
+    import sys
+    app = QApplication(sys.argv)
+    window = TyhmosControlApp()
+    window.show()
+    sys.exit(app.exec())
