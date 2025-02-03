@@ -45,17 +45,17 @@ class TyhmosControlApp(QMainWindow):
         self.buttonUp.released.connect(lambda: self.stop_moving())
         self.buttonDown.released.connect(lambda: self.stop_moving())
 
-        self.butRefresth.clicked.connect(self.populate_serial_ports)
+        self.butRefresh.clicked.connect(self.populate_serial_ports)
 
         # Set default label for connection status
         self.labelConnection.setText("Not Connected")
 
         # Setup graph for real-time plotting
-        self.setup_graph()
+        self.setup_graph_timebased()
 
         # Placeholder for graph data
-        self.loadcell_oversampling_data = [[], [], []]
-        self.graph_data = [[], [], []]  # Three separate lists for loadcells
+        self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
+        self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
 
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "stackedWidget")
@@ -104,25 +104,38 @@ class TyhmosControlApp(QMainWindow):
 
     def manual_movement_command(self):
         """Send manual movement commands."""
-        DIST = 2
+        DIST = 3
         if self.moving_dir == "UP":
             self.send_command(f"MC MOVEBY USER {-DIST}")
         elif self.moving_dir == "DOWN":
             self.send_command(f"MC MOVEBY USER {DIST}")
 
-    def setup_graph(self):
+    def setup_graph_timebased(self):
         """Initialize the graph for real-time plotting."""
         # Access the PlotWidget directly
-        # self.graphTimeBased.setBackground('w')  # Set white background
         self.graphTimeBased.showGrid(x=True, y=True)  # Show gridlines
         self.graphTimeBased.setTitle("Load Cell Data")  # Set title
         self.graphTimeBased.addLegend()  # Add legend
 
         # Initialize curves for each loadcell
-        self.curves = [
+        self.curves_time = [
             self.graphTimeBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
             self.graphTimeBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
             self.graphTimeBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
+        ]
+    
+    def setup_graph_positionbased(self):
+        """Initialize the graph for real-time plotting."""
+        # Access the PlotWidget directly
+        self.graphPositionBased.showGrid(x=True, y=True)
+        self.graphPositionBased.setTitle("Position Data")
+        self.graphPositionBased.addLegend()
+
+        # Initialize curves for each loadcell
+        self.curves_pos = [
+            self.graphPositionBased.plot(pen=pg.mkPen('r'), name="Loadcell 1"),  # Red
+            self.graphPositionBased.plot(pen=pg.mkPen('g'), name="Loadcell 2"),  # Green
+            self.graphPositionBased.plot(pen=pg.mkPen('b'), name="Loadcell 3"),  # Blue
         ]
 
 
@@ -218,25 +231,33 @@ class TyhmosControlApp(QMainWindow):
             # Check if the tab with the graph is currently visible
             current_tab_index = self.tabWidget.currentIndex()
 
-            if current_tab_index == 1:
-                for i, data in enumerate(self.graph_data):
-                    self.curves[i].setData(self.graph_data[i])  # Update the time based graph
-            elif current_tab_index == 2:
-                for i, data in enumerate(self.graph_data):
-                    self.curves[i].setData(self.graph_data[i])  # Update the position based graph
+            if current_tab_index == 1 and self.graph_time_data[0]:  # Time-based graph
+                for i in range(3):
+                    x_data, y_data = zip(*self.graph_time_data[i])  # Extract timestamps & values
+                    self.curves_time[i].setData(x_data, y_data)
+
+            elif current_tab_index == 2 and self.graph_pos_data[0]:  # Position-based graph
+                for i in range(3):
+                    x_data, y_data = zip(*self.graph_pos_data[i])  # Extract positions & values
+                    self.curves_pos[i].setData(x_data, y_data)
         except Exception as e:
             print(f"Failed to draw graphs: {e}")
             quit()
 
-    def update_loadcells(self, loadcells):
+    def update_graphdata(self, loadcells, timestamp, curPos):
         """Update the loadcell values in the UI."""
         try:
+            # Convert timestamp and position to float
+            timestamp = float(timestamp)
+            curPos = float(curPos)
+
             for i, load in enumerate(loadcells):
-                self.loadcell_oversampling_data[i].append(load)
-                if len(self.loadcell_oversampling_data[i]) >= 10:
-                    self.graph_data[i].append(sum(self.loadcell_oversampling_data[i]))
-                    self.loadcell_oversampling_data[i] = []
-                    self.graph_data[i] = self.graph_data[i][-400:]  # Keep the last X points
+                self.graph_time_data[i].append((timestamp, load))  # Store time-based data
+                self.graph_pos_data[i].append((curPos, load))      # Store position-based data
+
+                # Keep only the last 400 points
+                self.graph_time_data[i] = self.graph_time_data[i][-400:]
+                self.graph_pos_data[i] = self.graph_pos_data[i][-400:]
 
             self.loadcell1.setValue(int(loadcells[0]))
             self.loadcell2.setValue(int(loadcells[1]))
@@ -271,7 +292,7 @@ class TyhmosControlApp(QMainWindow):
 
                         # Convert from string to float for plotting
                         loadcells = [float(i) for i in loadcells]
-                        self.update_loadcells(loadcells)
+                        self.update_graphdata(loadcells, timestamp, curPos)
                     else:  # Handle other data
                         self.commandLineOutput.append(line)
             except Exception as e:
