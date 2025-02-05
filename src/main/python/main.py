@@ -1,9 +1,11 @@
 from PyQt6 import uic
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget
-from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QFileDialog
+from PyQt6.QtCore import QTimer, QDateTime
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
+import csv
+import os
 
 class TyhmosControlApp(QMainWindow):
     def __init__(self):
@@ -20,7 +22,7 @@ class TyhmosControlApp(QMainWindow):
 
         # Connect buttons to their respective actions
         self.buttonConnect.clicked.connect(self.connect_serial)
-        self.buttonStart.clicked.connect(self.send_command_start)
+        self.buttonStartStop.clicked.connect(self.measurementStartStop)
         self.buttonSend.clicked.connect(self.send_command_line)
         self.buttonCalibrate.clicked.connect(self.send_command_calibrate)
         self.buttonTare.clicked.connect(self.send_command_tare)
@@ -28,6 +30,8 @@ class TyhmosControlApp(QMainWindow):
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
         self.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
+
+        self.testSuccess.clicked.connect(self.dummy_measurement)
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
@@ -47,6 +51,8 @@ class TyhmosControlApp(QMainWindow):
 
         self.butRefresh.clicked.connect(self.populate_serial_ports)
 
+        self.butOutSelectFolder.clicked.connect(self.select_folder)
+
         # Set default label for connection status
         self.labelConnection.setText("Not Connected")
 
@@ -54,19 +60,25 @@ class TyhmosControlApp(QMainWindow):
         self.setup_graph_timebased()
         self.setup_graph_positionbased()
 
+        self.measurement_state = "ready"
+
         # Placeholder for graph data
         self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
         self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
         self.last_pos = 0
 
-        self.butClear.clicked.connect(self.clear_output)
+        self.firstSampleIndex = True
+        self.numSampleIndex.editingFinished.connect(self.update_sample_index)
+
+        self.butClear.clicked.connect(lambda: self.set_measurement_state("CLEAR"))
 
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "stackedWidget")
 
         self.nav_buttons = [
             self.butConnect,  
-            self.butSetup,    
+            self.butMachineSetup,    
+            self.butExperimentSetup,    
             self.butMeasure,  
             self.butView,     
             self.butDebug     
@@ -74,7 +86,8 @@ class TyhmosControlApp(QMainWindow):
 
         # Connect buttons to switch pages by name
         self.butConnect.clicked.connect(lambda: self.switch_page("Connect", self.butConnect))
-        self.butSetup.clicked.connect(lambda: self.switch_page("Setup", self.butSetup))
+        self.butMachineSetup.clicked.connect(lambda: self.switch_page("MachineSetup", self.butMachineSetup))
+        self.butExperimentSetup.clicked.connect(lambda: self.switch_page("ExperimentSetup", self.butExperimentSetup))
         self.butMeasure.clicked.connect(lambda: self.switch_page("Measure", self.butMeasure))
         self.butView.clicked.connect(lambda: self.switch_page("View", self.butView))
         self.butDebug.clicked.connect(lambda: self.switch_page("Debug", self.butDebug))
@@ -82,15 +95,26 @@ class TyhmosControlApp(QMainWindow):
         # Set the initial button highlight
         self.switch_page("Connect", self.butConnect)
 
-    def clear_output(self):
-        pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+    def update_sample_index(self):
+        self.firstSampleIndex = True
+
+    def clear_graph(self):
+        self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+        self.draw_graph(clear=True)
         self.last_pos = 0
+    
+    def dummy_measurement(self):
+        self.graph_pos_data = [[(0,0)], [(1,0), (2, 10), (3, 13)], []]
+        self.draw_graph()
+        self.set_measurement_state("SUCCESS")
 
     def switch_page(self, page_name, active_button):
         """Switch QStackedWidget page by name."""
         target_page = self.findChild(QWidget, page_name)
         if target_page:
             self.stackedWidget.setCurrentWidget(target_page)
+            if page_name == "ExperimentSetup":
+                self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
 
             # Reset all button colors
             for button in self.nav_buttons:
@@ -174,6 +198,9 @@ class TyhmosControlApp(QMainWindow):
                 self.serial_read_timer.start(10)  # Start reading every 10ms
                 self.graph_timer.start(50)  # draw graphs 20 Hz
                 self.set_connection_status(True)
+                # send command to start receiving data
+                self.send_command("DATAC")
+
             except Exception as e:
                 self.set_connection_status(False)
                 self.show_message(f"Failed to connect: {e}", error=True)
@@ -183,7 +210,7 @@ class TyhmosControlApp(QMainWindow):
         if status:
             self.labelConnection.setText("Connected")
             self.buttonConnect.setText("Disconnect")
-            self.labelConnection.setStyleSheet("background-color: green; color: white;")  # Set background to green
+            self.labelConnection.setStyleSheet("background-color: green;")  # Set background to green
         else:
             self.labelConnection.setText("Disconnected")
             self.buttonConnect.setText("Connect")
@@ -201,10 +228,124 @@ class TyhmosControlApp(QMainWindow):
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
-    def send_command_start(self):
+    def set_measurement_state(self, transition):
+        if self.measurement_state == "ready":
+            if transition == "START":
+                self.measurement_state = "measuring"
+                self.lMeasurementState.setText("Measuring...")
+                self.buttonStartStop.setText("Stop")
+                self.lMeasurementState.setStyleSheet("background-color: lightgreen;")
+                self.butExport.setEnabled(False)
+                self.butClear.setEnabled(False)
+                self.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
+                self.clear_graph()
+                if self.firstSampleIndex:
+                    self.firstSampleIndex = False
+                else:
+                    self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
+                # ToDo start measurement
+                #self.send_command("ToDo implement experiment start command")
+
+        elif self.measurement_state == "measuring":
+            if transition == "STOP":
+                self.measurement_state = "done"
+                self.lMeasurementState.setText("Stopped")
+                self.buttonStartStop.setText("Start")
+                self.lMeasurementState.setStyleSheet("background-color: orange;")
+                self.buttonStartStop.setEnabled(False)
+                self.butExport.setEnabled(True)
+                self.butClear.setEnabled(True)
+
+            elif transition == "SUCCESS":
+                self.measurement_state = "done"
+                self.lMeasurementState.setText("Done")
+                self.buttonStartStop.setText("Start")
+                self.lMeasurementState.setStyleSheet("background-color: green;")
+                self.buttonStartStop.setEnabled(False)
+                self.butExport.setEnabled(True)
+                self.butClear.setEnabled(True)
+
+        elif self.measurement_state == "done":
+            if transition == "CLEAR":
+                self.measurement_state = "ready"
+                self.lMeasurementState.setText("Ready")
+                self.buttonStartStop.setText("Start")
+                self.lMeasurementState.setStyleSheet("")
+                self.buttonStartStop.setEnabled(True)
+                self.butExport.setEnabled(False)
+                self.butClear.setEnabled(False)
+                self.clear_graph()
+                self.firstSampleIndex = True
+
+            elif transition == "EXPORT":
+                self.measurement_state = "ready"
+                self.lMeasurementState.setText("Ready")
+                self.buttonStartStop.setText("Start")
+                self.lMeasurementState.setStyleSheet("")
+                self.buttonStartStop.setEnabled(True)
+                self.butExport.setEnabled(False)
+                self.butClear.setEnabled(False)
+                #ToDo Export data to CSV
+                self.export(self.graph_pos_data)
+
+
+    def measurementStartStop(self):
         """Send 'Start' command to the connected serial device."""
-        # ToDo start measurement
-        self.send_command("ToDo implement experiment start command")
+        # STOP
+        if self.measurement_state == "ready":
+            self.set_measurement_state("START")
+        # START
+        elif self.measurement_state == "measuring":
+            self.set_measurement_state("STOP")
+
+    def select_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        if folder:  # If user selected a folder
+            self.selected_folder = folder
+            self.labOutFolder.setText(folder)
+
+    def export_to_csv(pos_data, folder, sample_num=1, filename="output", metadata=None):
+        """
+        Exports position-based data for load cells to a CSV file.
+
+        :param pos_data: List of lists containing (position, value) tuples.
+        :param folder: The folder where the CSV file will be saved.
+        :param filename: Name of the CSV file.
+        :param metadata: Dictionary containing metadata (e.g., author, date, title).
+        """
+        if not os.path.exists(folder):
+            print(f"Error: Folder '{folder}' does not exist.")
+            return
+
+        filename = f"{filename}_{sample_num}.csv"
+        filepath = os.path.join(folder, filename)
+
+        max_length = max(len(data) for data in pos_data)  # Find longest list
+
+        with open(filepath, mode="w", newline="") as file:
+            writer = csv.writer(file)
+
+            # Write metadata at the top
+            if metadata:
+                for key, value in metadata.items():
+                    writer.writerow([key, value])
+                writer.writerow([])  # Empty row to separate metadata from data
+
+            # Write headers
+            headers = ["Position", *[f"Loadcell_{i}" for i in range(len(pos_data))]]
+            writer.writerow(headers)
+
+            # Write data row by row
+            for i in range(max_length):
+                row = []
+                for loadcell_data in pos_data:
+                    if i < len(loadcell_data):
+                        row.extend(loadcell_data[i])  # Append (pos, value)
+                    else:
+                        row.extend(["", ""])  # Empty values if no data
+                writer.writerow(row)
+
+        print(f"Data exported successfully to {filepath}")
 
     def send_command_help(self):
         """Send 'Start' command to the connected serial device."""
@@ -234,20 +375,29 @@ class TyhmosControlApp(QMainWindow):
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
-    def draw_graph(self):
+    def draw_graph(self, clear=False):
         try:
             # Check if the tab with the graph is currently visible
             current_tab_index = self.tabWidget.currentIndex()
 
-            if current_tab_index == 0 and self.graph_time_data[0]:  # Time-based graph
+            if current_tab_index == 0:  # Time-based graph
                 for i in range(3):
-                    x_data, y_data = zip(*self.graph_time_data[i])  # Extract timestamps & values
-                    self.curves_time[i].setData(x_data, y_data)
+                    if self.graph_time_data[i]:
+                        x_data, y_data = zip(*self.graph_time_data[i])  # Extract timestamps & values
+                        self.curves_time[i].setData(x_data, y_data)
+                    if clear:
+                        x_data, y_data = [], []
+                        self.curves_time[i].setData(x_data, y_data)
 
-            elif current_tab_index == 1 and self.graph_pos_data[0]:  # Position-based graph
+            elif current_tab_index == 1:  # Position-based graph
                 for i in range(3):
-                    x_data, y_data = zip(*self.graph_pos_data[i])  # Extract positions & values
-                    self.curves_pos[i].setData(x_data, y_data)
+                    if self.graph_pos_data[i]:
+                        x_data, y_data = zip(*self.graph_pos_data[i])  # Extract positions & values
+                        self.curves_pos[i].setData(x_data, y_data)
+                    if clear:
+                        x_data, y_data = [], []
+                        self.curves_pos[i].setData(x_data, y_data)
+                    
         except Exception as e:
             print(f"Failed to draw graphs: {e}")
             quit()
@@ -266,16 +416,22 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_time_data[i].append((timestamp, load))  # Store time-based data
                 self.graph_time_data[i] = self.graph_time_data[i][-DATA_POINTS:]
 
-            if curPos != self.last_pos:
+            if curPos != self.last_pos and self.measurement_state == "measuring":
                 for i, load in enumerate(loadcells):
                     self.graph_pos_data[i].append((curPos, load))      # Store position-based data
                     self.graph_pos_data[i] = self.graph_pos_data[i][-DATA_POINTS:]
             self.last_pos = curPos
 
 
+            # bargraphhs
             self.loadcell1.setValue(int(loadcells[0]))
             self.loadcell2.setValue(int(loadcells[1]))
             self.loadcell3.setValue(int(loadcells[2]))
+            # values
+            self.nLC1.display(int(loadcells[0]))
+            self.nLC2.setText(f"{loadcells[1]:.2f} N") 
+            self.nLC3.setText(f"{loadcells[2]:.2f} N") 
+
         except Exception as e:
             print(f"Failed to update loadcells: {e}")
             quit()
