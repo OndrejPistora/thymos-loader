@@ -31,3 +31,7 @@ python src/main/python/main.py
 ## GUI
 
 ![Thymos Control UI](./GUI.png)
+
+## Feature list
+
+- configs saved to YAML file

@@ -6,6 +6,7 @@ from serial.tools import list_ports
 import pyqtgraph as pg
 import csv
 import os
+import pandas as pd
 
 class TyhmosControlApp(QMainWindow):
     def __init__(self):
@@ -25,7 +26,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonConnect.clicked.connect(self.connect_serial)
         self.buttonStartStop.clicked.connect(self.measurementStartStop)
         self.buttonSend.clicked.connect(self.send_command_line)
-        self.buttonCalibrate.clicked.connect(self.send_command_calibrate)
+        self.buttonHome.clicked.connect(self.send_command_home)
         self.buttonTare.clicked.connect(self.send_command_tare)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
@@ -65,7 +66,8 @@ class TyhmosControlApp(QMainWindow):
 
         # Placeholder for graph data
         self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
-        self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+        # Stores position-based data for 3 loadcells
+        self.graph_pos_data = pd.DataFrame(columns=["position", "loadcell1", "loadcell2", "loadcell3"])
         self.last_pos = 0
 
         self.firstSampleIndex = True
@@ -106,12 +108,14 @@ class TyhmosControlApp(QMainWindow):
             self.set_measurement_state("CLEAR")
 
     def clear_graph(self):
-        self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
+        self.graph_pos_data = pd.DataFrame(columns=["position", "loadcell1", "loadcell2", "loadcell3"])
         self.draw_graph(clear=True)
         self.last_pos = 0
     
     def dummy_measurement(self):
-        self.graph_pos_data = [[(0,0)], [(1,0), (2, 10), (3, 13)], []]
+        self.graph_pos_data.loc[0] = [1, None, 0, None]
+        self.graph_pos_data.loc[1] = [2, None, 10, None]
+        self.graph_pos_data.loc[2] = [3, None, 13, None]
         self.draw_graph()
         self.set_measurement_state("SUCCESS")
 
@@ -354,32 +358,23 @@ class TyhmosControlApp(QMainWindow):
                 writer.writerow([key, value])
             writer.writerow([])  # Empty row to separate metadata from data
 
-            # Write headers
-            headers = ["Position", *[f"Loadcell_{i}" for i in range(len(pos_data))]]
+            # Extract columns dynamically (keeping "position" first)
+            headers = ["position"] + [col for col in self.graph_pos_data.columns if col != "position"]
             writer.writerow(headers)
 
             # Write data row by row
-            for i in range(max_length):
-                row = []
-                for loadcell_data in pos_data:
-                    if i < len(loadcell_data):
-                        row.extend(loadcell_data[i])  # Append (pos, value)
-                    else:
-                        row.extend(["", ""])  # Empty values if no data
-                writer.writerow(row)
+            for _, row in self.graph_pos_data.iterrows():
+                writer.writerow(row.fillna("").tolist())  # Replace NaN with empty string
 
         print(f"Data exported successfully to {filepath}")
 
     def send_command_help(self):
-        """Send 'Start' command to the connected serial device."""
         self.send_command("HELP")
 
-    def send_command_calibrate(self):
-        """Send 'Start' command to the connected serial device."""
+    def send_command_home(self):
         self.send_command("MC CALIBRATE")
 
     def send_command_tare(self):
-        """Send 'Start' command to the connected serial device."""
         # ToDo send command to tare 
         self.send_command("ToDo implement tare command")
 
@@ -414,12 +409,16 @@ class TyhmosControlApp(QMainWindow):
 
             elif current_tab_index == 1:  # Position-based graph
                 for i in range(3):
-                    if self.graph_pos_data[i]:
-                        x_data, y_data = zip(*self.graph_pos_data[i])  # Extract positions & values
-                        self.curves_pos[i].setData(x_data, y_data)
                     if clear:
                         x_data, y_data = [], []
                         self.curves_pos[i].setData(x_data, y_data)
+                    else:
+                        x_data = self.graph_pos_data["position"]
+                        y_data = self.graph_pos_data[f"loadcell{i+1}"]
+                        print(x_data, y_data)
+                        if y_data.any():
+                            self.curves_pos[i].setData(x_data, y_data)
+                                
                     
         except Exception as e:
             print(f"Failed to draw graphs: {e}")
@@ -440,11 +439,9 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_time_data[i] = self.graph_time_data[i][-DATA_POINTS:]
 
             if curPos != self.last_pos and self.measurement_state == "measuring":
-                for i, load in enumerate(loadcells):
-                    self.graph_pos_data[i].append((curPos, load))      # Store position-based data
-                    self.graph_pos_data[i] = self.graph_pos_data[i][-DATA_POINTS:]
+                self.graph_pos_data.loc[len(self.graph_pos_data)] = [curPos, *loadcells]  # Add a new row at the end
+                # self.graph_pos_data[i] = self.graph_pos_data[i][-DATA_POINTS:]
             self.last_pos = curPos
-
 
             # bargraphhs
             self.loadcell1.setValue(int(loadcells[0]))
