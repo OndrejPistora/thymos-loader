@@ -15,6 +15,7 @@ class TyhmosControlApp(QMainWindow):
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
 
+        self.selected_folder = None
         self.serial_buffer = ""
 
         # Populate the ComboBox with available serial ports 
@@ -70,7 +71,8 @@ class TyhmosControlApp(QMainWindow):
         self.firstSampleIndex = True
         self.numSampleIndex.editingFinished.connect(self.update_sample_index)
 
-        self.butClear.clicked.connect(lambda: self.set_measurement_state("CLEAR"))
+        self.butClear.clicked.connect(self.ask_clear)
+        self.butExport.clicked.connect(lambda: self.set_measurement_state("EXPORT"))
 
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "stackedWidget")
@@ -97,6 +99,11 @@ class TyhmosControlApp(QMainWindow):
 
     def update_sample_index(self):
         self.firstSampleIndex = True
+    
+    def ask_clear(self):
+        reply = QMessageBox.question(self, 'Message', "Are you sure to clear the graph?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            self.set_measurement_state("CLEAR")
 
     def clear_graph(self):
         self.graph_pos_data = [[], [], []]   # Stores position-based data for 3 loadcells
@@ -121,7 +128,7 @@ class TyhmosControlApp(QMainWindow):
                 button.setStyleSheet("")
 
             # Highlight the active button with a green tint
-            active_button.setStyleSheet("background-color: lightgreen;")
+            active_button.setStyleSheet("background-color: lightgreen; color: black;")
 
     def start_moving(self, dir):
         """Start sending movement commands for UP or DOWN."""
@@ -237,7 +244,7 @@ class TyhmosControlApp(QMainWindow):
                 self.lMeasurementState.setStyleSheet("background-color: lightgreen;")
                 self.butExport.setEnabled(False)
                 self.butClear.setEnabled(False)
-                self.dateTimeEdit.setDateTime(QDateTime.currentDateTime())
+                self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
                 self.clear_graph()
                 if self.firstSampleIndex:
                     self.firstSampleIndex = False
@@ -278,15 +285,33 @@ class TyhmosControlApp(QMainWindow):
                 self.firstSampleIndex = True
 
             elif transition == "EXPORT":
-                self.measurement_state = "ready"
-                self.lMeasurementState.setText("Ready")
-                self.buttonStartStop.setText("Start")
-                self.lMeasurementState.setStyleSheet("")
-                self.buttonStartStop.setEnabled(True)
-                self.butExport.setEnabled(False)
-                self.butClear.setEnabled(False)
-                #ToDo Export data to CSV
-                self.export(self.graph_pos_data)
+                if self.selected_folder:
+                    self.measurement_state = "ready"
+                    self.lMeasurementState.setText("Ready")
+                    self.buttonStartStop.setText("Start")
+                    self.lMeasurementState.setStyleSheet("")
+                    self.buttonStartStop.setEnabled(True)
+                    self.butExport.setEnabled(False)
+                    self.butClear.setEnabled(False)
+                    #Export data to CSV
+                    metadata = {
+                        "Title": self.inputExperimentTitle.text(),
+                        "Sample Index": self.numSampleIndex.value(),
+                        "Sample": self.inputExperimentSample.text(),
+                        "Author": self.inputExperimentAuthor.text(),
+                        "Date": self.inputExperimentDate.text(),
+                        "Description": self.inputExperimentDescription.toPlainText(),
+                        "Notes": self.inputExperimentNotes.toPlainText(),
+                        "Speed": self.numExperimentSpeed.value(),
+                        }
+                    filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
+                    self.export_to_csv(
+                        self.graph_pos_data,
+                        self.selected_folder,
+                        filename,
+                        metadata)
+                else:
+                    self.show_message("Please select an output folder first.", error=True)
 
 
     def measurementStartStop(self):
@@ -304,7 +329,7 @@ class TyhmosControlApp(QMainWindow):
             self.selected_folder = folder
             self.labOutFolder.setText(folder)
 
-    def export_to_csv(pos_data, folder, sample_num=1, filename="output", metadata=None):
+    def export_to_csv(self, pos_data, folder, filename, metadata):
         """
         Exports position-based data for load cells to a CSV file.
 
@@ -317,7 +342,6 @@ class TyhmosControlApp(QMainWindow):
             print(f"Error: Folder '{folder}' does not exist.")
             return
 
-        filename = f"{filename}_{sample_num}.csv"
         filepath = os.path.join(folder, filename)
 
         max_length = max(len(data) for data in pos_data)  # Find longest list
@@ -326,10 +350,9 @@ class TyhmosControlApp(QMainWindow):
             writer = csv.writer(file)
 
             # Write metadata at the top
-            if metadata:
-                for key, value in metadata.items():
-                    writer.writerow([key, value])
-                writer.writerow([])  # Empty row to separate metadata from data
+            for key, value in metadata.items():
+                writer.writerow([key, value])
+            writer.writerow([])  # Empty row to separate metadata from data
 
             # Write headers
             headers = ["Position", *[f"Loadcell_{i}" for i in range(len(pos_data))]]
