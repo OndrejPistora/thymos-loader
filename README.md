@@ -38,6 +38,10 @@ Convert .ui to .py:
 ```sh
 pyuic6 -o src/ui/design.py src/ui/design.ui
 ```
+Pack to exe
+```sh
+pyinstaller --noconsole --onefile main.py
+```
 
 ## Feature list
 
