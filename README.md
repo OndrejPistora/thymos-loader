@@ -42,14 +42,20 @@ Pack to exe
 ```sh
 pyinstaller --noconsole --onefile src/main/python/main.py
 ```
+```sh
+pyinstaller --noconsole --onefile --windowed --name="ThymosControl" src/main/python/main.py
+```
 
-## Feature list
+## pyQT6 designer
+
+cant install PyQt6-tools so doesnt work for me
+```sh
+pyqt6-tools designer
+```
+
+## ToDo list
 
 - configs saved to YAML file
 - view csv
 - upload exports to cloud?
-
-## ToDo next
-
-- cloud viewer
-- 
+- cloud viewers

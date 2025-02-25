@@ -9,3 +9,5 @@ pyqtgraph
 pyserial
 
 pyinstaller
+
+PyQt6-tools
