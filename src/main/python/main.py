@@ -1,6 +1,7 @@
-from PyQt6 import uic
+#from PyQt6 import uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
+from ...ui.design import Ui_MainWindow
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
@@ -8,10 +9,11 @@ import csv
 import os
 import pandas as pd
 
-class TyhmosControlApp(QMainWindow):
+class TyhmosControlApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi("src/ui/design.ui", self)
+        self.setupUi(self)  # Load UI from generated Python class
+        #uic.loadUi("src/ui/design.ui", self)
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False

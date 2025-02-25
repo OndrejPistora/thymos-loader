@@ -28,9 +28,13 @@ pip install -r requirements.txt
 python src/main/python/main.py
 ```
 
-## GUI
+## GUI screenshot
 
 ![Thymos Control UI](./GUI.png)
+
+## Pack
+
+
 
 ## Feature list
 
