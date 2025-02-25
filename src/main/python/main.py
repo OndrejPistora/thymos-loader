@@ -496,6 +496,8 @@ class TyhmosControlApp(QMainWindow, Ui_MainWindow):
                         # Convert from string to float for plotting
                         loadcells = [float(i) for i in loadcells]
                         self.update_graphdata(loadcells, timestamp, curPos)
+                    elif line.startswith("Experiment stopped."):
+                        self.set_measurement_state("SUCCESS")
                     else:  # Handle other data
                         self.commandLineOutput.append(line)
             except Exception as e:
