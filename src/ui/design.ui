@@ -214,7 +214,7 @@ Setup</string>
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Connect">
         <widget class="QComboBox" name="serialPortSelection">
@@ -334,7 +334,7 @@ Setup</string>
            <enum>Qt::Vertical</enum>
           </property>
          </widget>
-         <widget class="QPushButton" name="buttonTare">
+         <widget class="QPushButton" name="buttonTare1">
           <property name="geometry">
            <rect>
             <x>120</x>
@@ -514,7 +514,7 @@ Setup</string>
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
-         <widget class="QPushButton" name="buttonTare_2">
+         <widget class="QPushButton" name="buttonTare2">
           <property name="geometry">
            <rect>
             <x>120</x>
@@ -527,7 +527,7 @@ Setup</string>
            <string>Tare loadcell 2</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="buttonTare_3">
+         <widget class="QPushButton" name="buttonTare3">
           <property name="geometry">
            <rect>
             <x>120</x>
@@ -671,12 +671,12 @@ Setup</string>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Displacement</string>
+              <string>Distance</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="numExperimentDisplacement">
+            <widget class="QDoubleSpinBox" name="numExperimentDistance">
              <property name="suffix">
               <string> mm</string>
              </property>
@@ -723,11 +723,17 @@ Setup</string>
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="numExperimentSafeForce">
+             <property name="showGroupSeparator" stdset="0">
+              <bool>false</bool>
+             </property>
              <property name="suffix">
               <string> N</string>
              </property>
              <property name="decimals">
               <number>0</number>
+             </property>
+             <property name="maximum">
+              <double>1000.000000000000000</double>
              </property>
             </widget>
            </item>

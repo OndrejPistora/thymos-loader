@@ -11,7 +11,7 @@ import pandas as pd
 class TyhmosControlApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi("src/ui/main_buttons.ui", self)
+        uic.loadUi("src/ui/design.ui", self)
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
@@ -27,7 +27,10 @@ class TyhmosControlApp(QMainWindow):
         self.buttonStartStop.clicked.connect(self.measurementStartStop)
         self.buttonSend.clicked.connect(self.send_command_line)
         self.buttonHome.clicked.connect(self.send_command_home)
-        self.buttonTare.clicked.connect(self.send_command_tare)
+        self.buttonHome.setToolTip('Homes the machine.\nThe machine will move up to touch the endstop sensors.\nThe crossbar will be leveled.')
+        self.buttonTare1.clicked.connect(lambda: self.send_command_tare(1))
+        self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
+        self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
@@ -147,7 +150,7 @@ class TyhmosControlApp(QMainWindow):
 
     def manual_movement_command(self):
         """Send manual movement commands."""
-        DIST = 3
+        DIST = 5
         if self.moving_dir == "UP":
             self.send_command(f"MC MOVEBY USER {-DIST}")
         elif self.moving_dir == "DOWN":
@@ -210,7 +213,10 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_timer.start(50)  # draw graphs 20 Hz
                 self.set_connection_status(True)
                 # send command to start receiving data
-                self.send_command("DATAC")
+                # INIT COMMANDS
+                self.send_command("DATAC 1")
+                #self.send_command("MISC SET WATCHDOG_ENABLED 1")
+                
 
             except Exception as e:
                 self.set_connection_status(False)
@@ -254,8 +260,10 @@ class TyhmosControlApp(QMainWindow):
                     self.firstSampleIndex = False
                 else:
                     self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
-                # ToDo start measurement
-                #self.send_command("ToDo implement experiment start command")
+                dist = self.numExperimentDistance.value()
+                speed = self.numExperimentSpeed.value()
+                max_force = self.numExperimentSafeForce.value()
+                self.send_command_experiment_standard(dist, speed, max_force)
 
         elif self.measurement_state == "measuring":
             if transition == "STOP":
@@ -374,9 +382,12 @@ class TyhmosControlApp(QMainWindow):
     def send_command_home(self):
         self.send_command("MC CALIBRATE")
 
-    def send_command_tare(self):
-        # ToDo send command to tare 
-        self.send_command("ToDo implement tare command")
+    def send_command_tare(self, lc_num):
+        self.send_command(f"LC TARE {lc_num - 1}")
+
+    def send_command_experiment_standard(self, displacement, speed, max_force):
+        #ToDo
+        self.send_command(f"EXP STANDARD {displacement} {speed} {max_force} 1 1 0")
 
     def send_command_line(self):
         """Send a command manually entered in the commandLineEdit."""
@@ -415,7 +426,7 @@ class TyhmosControlApp(QMainWindow):
                     else:
                         x_data = self.graph_pos_data["position"]
                         y_data = self.graph_pos_data[f"loadcell{i+1}"]
-                        print(x_data, y_data)
+                        #print(x_data, y_data)
                         if y_data.any():
                             self.curves_pos[i].setData(x_data, y_data)
                                 
