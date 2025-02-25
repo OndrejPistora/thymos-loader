@@ -1,0 +1,13 @@
+stages:
+  - build
+
+build_windows:
+  image: cdrx/pyinstaller-windows:python3
+  stage: build
+  script:
+    - pip install -r requirements.txt
+    - pyinstaller --noconsole --onefile src/main/python/main.py
+  artifacts:
+    paths:
+      - dist/main.exe
+    expire_in: 1 week
