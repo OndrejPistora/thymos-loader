@@ -11,3 +11,15 @@ build_windows:
     paths:
       - dist/main.exe
     expire_in: 1 week
+
+build_mac:
+  image: python:3.10  # macOS runners are not available on GitLab, so we use Linux and macOS cross-compilation
+  stage: build
+  before_script:
+    - pip install pyinstaller
+  script:
+    - pyinstaller --noconsole --onefile --windowed --name="ThymosControl" src/main/python/main.py
+  artifacts:
+    paths:
+      - dist/ThymosControl
+    expire_in: 1 week
