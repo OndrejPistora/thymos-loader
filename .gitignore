@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# PyInstaller build files
+build/
+dist/
+*.spec
+
+# Qt UI Compiled files
+*.pyc
+*.pyo
+*.pyd
+*.qrc
+
+# VS Code settings
+# .vscode/
+# *.code-workspace
+
+# MacOS system files
+.DS_Store
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Ignore compiled UI files if using .ui
+src/ui/*.py  # Remove if you converted .ui to .py manually
+
+# Ignore local settings
+*.env
+.envrc
