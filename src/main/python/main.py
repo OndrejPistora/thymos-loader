@@ -1,7 +1,7 @@
 #from PyQt6 import uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
-from ...ui.design import Ui_MainWindow
+from src.ui.design import Ui_MainWindow
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg

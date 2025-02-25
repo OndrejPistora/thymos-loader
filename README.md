@@ -34,7 +34,10 @@ python src/main/python/main.py
 
 ## Pack
 
-
+Convert .ui to .py:
+```sh
+pyuic6 -o src/ui/design.py src/ui/design.ui
+```
 
 ## Feature list
 

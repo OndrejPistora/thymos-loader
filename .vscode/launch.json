@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "name": "Run Thymos Loader",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.main.python.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}
