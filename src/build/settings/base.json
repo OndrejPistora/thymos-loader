@@ -1,5 +1,5 @@
 {
-    "app_name": "Thymos Loader",
+    "app_name": "ThymosLoader",
     "author": "Ondrej Pistora",
     "main_module": "src/main/python/thymos_loader/main.py",
     "version": "0.1.0"

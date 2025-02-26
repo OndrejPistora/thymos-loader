@@ -1,7 +1,5 @@
 PySide6
 
-pyside6-tools
-
 PyQt6
 
 pyqtgraph
@@ -11,3 +9,5 @@ pyserial
 pyinstaller
 
 PyQt6-tools
+
+fbs[upload]

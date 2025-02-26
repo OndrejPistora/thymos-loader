@@ -1,25 +1,60 @@
 stages:
   - build
+  - release
+
+variables:
+  APP_NAME: "ThymosLoader"
 
 build_windows:
-  image: cdrx/pyinstaller-windows:python3
   stage: build
+  tags:
+    - windows
   script:
-    - pip install -r requirements.txt
-    - pyinstaller --noconsole --onefile src/main/python/main.py
+    - python -m venv venv
+    - source venv/Scripts/activate
+    - pip install fbs PyQt5
+    - fbs clean
+    - fbs freeze
   artifacts:
     paths:
-      - dist/main.exe
-    expire_in: 1 week
+      - "target"
 
 build_mac:
-  image: python:3.10  # macOS runners are not available on GitLab, so we use Linux and macOS cross-compilation
   stage: build
-  before_script:
-    - pip install pyinstaller
+  tags:
+    - macos
   script:
-    - pyinstaller --noconsole --onefile --windowed --name="ThymosControl" src/main/python/main.py
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install fbs PyQt5
+    - fbs clean
+    - fbs freeze
   artifacts:
     paths:
-      - dist/ThymosControl
-    expire_in: 1 week
+      - "target"
+
+build_linux:
+  stage: build
+  tags:
+    - linux
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install fbs PyQt5
+    - fbs clean
+    - fbs freeze
+  artifacts:
+    paths:
+      - "target"
+
+release:
+  stage: release
+  script:
+    - echo "Releasing application..."
+  dependencies:
+    - build_windows
+    - build_mac
+    - build_linux
+  artifacts:
+    paths:
+      - "target"
