@@ -1,0 +1,54 @@
+name: Build and Release fbs App
+
+on:
+  push:
+    tags:
+      - "v*"  # Triggers only when you push a tag like v1.0.0
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]  # Builds on all three OS
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install fbs PyQt5
+
+      - name: Build with fbs
+        run: |
+          fbs clean
+          fbs freeze
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-build
+          path: target/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: builds/
+
+      - name: Create a GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: builds/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
