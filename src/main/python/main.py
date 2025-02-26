@@ -1,19 +1,22 @@
-#from PyQt6 import uic
+from fbs_runtime.application_context.PyQt6 import ApplicationContext
+from PyQt6 import uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
-from src.ui.design import Ui_MainWindow
+# from src.ui.design import Ui_MainWindow
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
 import csv
 import os
 import pandas as pd
+import sys
 
-class TyhmosControlApp(QMainWindow, Ui_MainWindow):
+# class TyhmosControlApp(QMainWindow, Ui_MainWindow):
+class TyhmosControlApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)  # Load UI from generated Python class
-        #uic.loadUi("src/ui/design.ui", self)
+        # self.setupUi(self)  # Load UI from generated Python class
+        uic.loadUi("src/ui/design.ui", self)
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
@@ -515,8 +518,24 @@ class TyhmosControlApp(QMainWindow, Ui_MainWindow):
         self.app.exec()
 
 if __name__ == "__main__":
-    import sys
-    app = QApplication(sys.argv)
+    # import sys
+    # app = QApplication(sys.argv)
+    # window = TyhmosControlApp()
+    # window.show()
+    # sys.exit(app.exec())
+
+    # appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
+    # window = QMainWindow()
+    # window.resize(250, 150)
+    # window.show()
+    # exit_code = appctxt.app.exec()      # 2. Invoke appctxt.app.exec_()
+    # sys.exit(exit_code)
+
+    appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
     window = TyhmosControlApp()
+    # window.resize(250, 150)
     window.show()
-    sys.exit(app.exec())
+    exit_code = appctxt.app.exec()      # 2. Invoke appctxt.app.exec_()
+    sys.exit(exit_code)
+
+    

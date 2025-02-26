@@ -20,6 +20,11 @@ pip install pyserial
 <https://github.com/mherrmann/fbs-tutorial>
 fbs startproject
 
+I bought the PRO version
+email from michael@herrmann.io on 26. 2. 2025 15:52
+```sh
+pip install fbs_pro-1.2.7.tar.gz
+```
 ## inculde graph in qt desinger
 
 <https://www.pythonguis.com/tutorials/pyside6-embed-pyqtgraph-custom-widgets/>

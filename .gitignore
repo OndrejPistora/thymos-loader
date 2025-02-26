@@ -39,3 +39,6 @@ src/ui/*.py  # Remove if you converted .ui to .py manually
 # Ignore local settings
 *.env
 .envrc
+
+# PyBuilder
+target/
