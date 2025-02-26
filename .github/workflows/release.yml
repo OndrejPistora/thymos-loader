@@ -31,9 +31,12 @@ jobs:
           fbs clean
           fbs freeze
 
-      - name: Create Installer with fbs release
+      - name: Extract Version Tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Create Installer with fbs release (Using Tag)
         run: |
-          fbs release
+          fbs release $VERSION
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
