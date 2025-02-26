@@ -31,17 +31,21 @@ jobs:
           fbs clean
           fbs freeze
 
+      - name: Create Installer with fbs release
+        run: |
+          fbs release
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-build
+          name: ${{ runner.os }}-release
           path: target/
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all build artifacts
+      - name: Download all release artifacts
         uses: actions/download-artifact@v4
         with:
           path: builds/
