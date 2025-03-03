@@ -54,8 +54,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/fbs_tutorial_app.deb
-          asset_name: fbs_tutorial_app.deb
+          file: target/ThymosLoader.deb
+          asset_name: ThymosLoader.deb
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -86,8 +86,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/fbs_tutorial_app.dmg
-          asset_name: fbs_tutorial_app.dmg
+          file: target/ThymosLoader.dmg
+          asset_name: ThymosLoader.dmg
           tag: ${{ github.ref }}
           overwrite: true
 
@@ -118,7 +118,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/fbs_tutorial_appSetup.exe
-          asset_name: fbs_tutorial_appSetup.exe
+          file: target/ThymosLoader.exe
+          asset_name: ThymosLoader.exe
           tag: ${{ github.ref }}
           overwrite: true
