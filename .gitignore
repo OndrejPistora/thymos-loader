@@ -11,11 +11,6 @@ env/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# PyInstaller build files
-build/
-dist/
-*.spec
-
 # Qt UI Compiled files
 *.pyc
 *.pyo
