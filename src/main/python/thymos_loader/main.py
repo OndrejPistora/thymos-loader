@@ -13,14 +13,9 @@ import sys
 
 # class TyhmosControlApp(QMainWindow, Ui_MainWindow):
 class TyhmosControlApp(QMainWindow):
-    def __init__(self):
+    def __init__(self, design_path):
         super().__init__()
-        # self.setupUi(self)  # Load UI from generated Python class
-        uic.loadUi("src/main/resources/base/design.ui", self)
-        #ToDo load resource properly
-        # https://build-system.fman.io/manual/#get_resource
-        # design_file = ApplicationContext.get_resource("src/main/resources/base/design.ui")
-        # uic.loadUi(design_file, self)
+        uic.loadUi(design_path, self)
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
@@ -536,7 +531,8 @@ if __name__ == "__main__":
     # sys.exit(exit_code)
 
     appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
-    window = TyhmosControlApp()
+    design_path = appctxt.get_resource("design.ui")
+    window = TyhmosControlApp(design_path)
     # window.resize(250, 150)
     window.show()
     exit_code = appctxt.app.exec()      # 2. Invoke appctxt.app.exec_()

@@ -44,3 +44,11 @@ bump2version major
 ```
 
 then push to github
+
+## “ThymosLoader.app” is damaged and can’t be opened. You should move it to the Bin
+
+move it from Applications/ ie to Downloads/
+
+```sh
+xattr -rd com.apple.quarantine Downloads/ThymosLoader.app
+```
