@@ -87,6 +87,11 @@ jobs:
       - name: Install fbs_pro
         run: pip install fbs_pro-1.2.7.tar.gz
 
+      - name: Unmount previous DMG (if exists)
+        run: |
+          hdiutil detach /Volumes/ThymosLoader || true
+          rm -f target/ThymosLoader.dmg
+
       - name: Run fbs
         run: |
           fbs freeze --debug
