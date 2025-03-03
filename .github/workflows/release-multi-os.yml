@@ -53,7 +53,7 @@ jobs:
 
       - name: Run fbs
         run: |
-          fbs freeze
+          fbs freeze --debug
           fbs installer
 
       - name: Upload binaries to release
@@ -89,7 +89,7 @@ jobs:
 
       - name: Run fbs
         run: |
-          fbs freeze
+          fbs freeze --debug
           fbs installer
 
       - name: Upload binaries to release
@@ -124,7 +124,7 @@ jobs:
 
       - name: Run fbs and freeze application
         run: |
-          fbs freeze
+          fbs freeze --debug
           fbs installer
 
       - name: Upload binaries to release
