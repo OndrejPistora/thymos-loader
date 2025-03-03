@@ -16,7 +16,11 @@ class TyhmosControlApp(QMainWindow):
     def __init__(self):
         super().__init__()
         # self.setupUi(self)  # Load UI from generated Python class
-        uic.loadUi("src/ui/design.ui", self)
+        uic.loadUi("src/main/resources/base/design.ui", self)
+        #ToDo load resource properly
+        # https://build-system.fman.io/manual/#get_resource
+        # design_file = ApplicationContext.get_resource("src/main/resources/base/design.ui")
+        # uic.loadUi(design_file, self)
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
