@@ -230,7 +230,7 @@ class TyhmosControlApp(QMainWindow):
                 self.send_command("DATAC 1")
                 self.send_command("MC SET SPEEDMM 20")
                 self.send_command("MC SET ACCEL 50")
-                # ToDo watchdog
+                # ToDo use watchdog
                 #self.send_command("MISC SET WATCHDOG_ENABLED 1")
                 
 
@@ -439,10 +439,10 @@ class TyhmosControlApp(QMainWindow):
                         x_data, y_data = [], []
                         self.curves_pos[i].setData(x_data, y_data)
                     else:
-                        x_data = self.graph_pos_data["position"]
-                        y_data = self.graph_pos_data[f"loadcell{i+1}"]
+                        x_data = self.graph_pos_data["position"].to_list()
+                        y_data = self.graph_pos_data[f"loadcell{i+1}"].fill_null(0).to_list()  # Replace nulls with 0
                         #print(x_data, y_data)
-                        if y_data.any():
+                        if any(y_data):
                             self.curves_pos[i].setData(x_data, y_data)
                                 
                     
