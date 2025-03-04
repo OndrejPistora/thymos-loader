@@ -90,7 +90,7 @@ class TyhmosControlApp(QMainWindow):
         self.butExport.clicked.connect(lambda: self.set_measurement_state("EXPORT"))
 
         # Get the StackedWidget
-        self.stackedWidget = self.findChild(QWidget, "stackedWidget")
+        self.stackedWidget = self.findChild(QWidget, "fMain")
 
         self.nav_buttons = [
             self.butConnect,  
