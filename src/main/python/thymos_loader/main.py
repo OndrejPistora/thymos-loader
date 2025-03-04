@@ -8,7 +8,7 @@ from serial.tools import list_ports
 import pyqtgraph as pg
 import csv
 import os
-import pandas as pd
+import polars as pl
 import sys
 
 # class TyhmosControlApp(QMainWindow, Ui_MainWindow):
@@ -23,6 +23,12 @@ class TyhmosControlApp(QMainWindow):
         self.selected_folder = None
         self.serial_buffer = ""
 
+        self.INIT_POS_DATA = pl.DataFrame(schema={
+            "position": pl.Float64,
+            "loadcell1": pl.Float64,
+            "loadcell2": pl.Float64,
+            "loadcell3": pl.Float64
+        })
         # Populate the ComboBox with available serial ports 
         self.populate_serial_ports()
 
@@ -74,7 +80,7 @@ class TyhmosControlApp(QMainWindow):
         # Placeholder for graph data
         self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
         # Stores position-based data for 3 loadcells
-        self.graph_pos_data = pd.DataFrame(columns=["position", "loadcell1", "loadcell2", "loadcell3"])
+        self.graph_pos_data = self.INIT_POS_DATA.clone()
         self.last_pos = 0
 
         self.firstSampleIndex = True
@@ -115,14 +121,17 @@ class TyhmosControlApp(QMainWindow):
             self.set_measurement_state("CLEAR")
 
     def clear_graph(self):
-        self.graph_pos_data = pd.DataFrame(columns=["position", "loadcell1", "loadcell2", "loadcell3"])
+        self.graph_pos_data = self.INIT_POS_DATA.clone()
         self.draw_graph(clear=True)
         self.last_pos = 0
     
     def dummy_measurement(self):
-        self.graph_pos_data.loc[0] = [1, None, 0, None]
-        self.graph_pos_data.loc[1] = [2, None, 10, None]
-        self.graph_pos_data.loc[2] = [3, None, 13, None]
+        self.graph_pos_data = pl.DataFrame({
+            "position": [1, 2, 3],
+            "loadcell1": [None, None, None],
+            "loadcell2": [0, 10, 13],
+            "loadcell3": [None, None, None]
+        })
         self.draw_graph()
         self.set_measurement_state("SUCCESS")
 
@@ -377,9 +386,8 @@ class TyhmosControlApp(QMainWindow):
             headers = ["position"] + [col for col in self.graph_pos_data.columns if col != "position"]
             writer.writerow(headers)
 
-            # Write data row by row
-            for _, row in self.graph_pos_data.iterrows():
-                writer.writerow(row.fillna("").tolist())  # Replace NaN with empty string
+            # Write data with polars
+            self.graph_pos_data.write_csv(filepath)
 
         print(f"Data exported successfully to {filepath}")
 
@@ -457,8 +465,13 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_time_data[i] = self.graph_time_data[i][-DATA_POINTS:]
 
             if curPos != self.last_pos and self.measurement_state == "measuring":
-                self.graph_pos_data.loc[len(self.graph_pos_data)] = [curPos, *loadcells]  # Add a new row at the end
-                # self.graph_pos_data[i] = self.graph_pos_data[i][-DATA_POINTS:]
+                new_row = pl.DataFrame({
+                    "position": [curPos],
+                    "loadcell1": [loadcells[0]],
+                    "loadcell2": [loadcells[1]],
+                    "loadcell3": [loadcells[2]]
+                })
+                self.graph_pos_data = pl.concat([self.graph_pos_data, new_row])
             self.last_pos = curPos
 
             # bargraphhs
