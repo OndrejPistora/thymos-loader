@@ -516,29 +516,15 @@ class TyhmosControlApp(QMainWindow):
         msg_box.setWindowTitle("Error" if error else "Notification")
         msg_box.exec()
 
-    def run(self):
-        self.app.exec()
 
 if __name__ == "__main__":
-    # import sys
-    # app = QApplication(sys.argv)
-    # window = TyhmosControlApp()
-    # window.show()
-    # sys.exit(app.exec())
 
-    # appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
-    # window = QMainWindow()
-    # window.resize(250, 150)
-    # window.show()
-    # exit_code = appctxt.app.exec()      # 2. Invoke appctxt.app.exec_()
-    # sys.exit(exit_code)
-
-    appctxt = ApplicationContext()       # 1. Instantiate ApplicationContext
+    appctxt = ApplicationContext()
     design_path = appctxt.get_resource("design.ui")
     window = TyhmosControlApp(design_path)
     # window.resize(250, 150)
     window.show()
-    exit_code = appctxt.app.exec()      # 2. Invoke appctxt.app.exec_()
+    exit_code = appctxt.app.exec()
     sys.exit(exit_code)
 
     
