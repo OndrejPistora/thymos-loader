@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -555,25 +555,15 @@ Setup</string>
                <widget class="QFrame" name="frame">
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
-                  <widget class="QProgressBar" name="loadcell1">
+                  <widget class="ZeroProgressBar" name="loadcell1">
                    <property name="minimum">
                     <number>-100</number>
                    </property>
                    <property name="value">
                     <number>0</number>
                    </property>
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QProgressBar" name="loadcell2">
-                   <property name="minimum">
-                    <number>-100</number>
-                   </property>
-                   <property name="value">
-                    <number>24</number>
+                   <property name="textVisible">
+                    <bool>false</bool>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
@@ -581,12 +571,31 @@ Setup</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QProgressBar" name="loadcell3">
+                  <widget class="ZeroProgressBar" name="loadcell2">
                    <property name="minimum">
                     <number>-100</number>
                    </property>
                    <property name="value">
                     <number>24</number>
+                   </property>
+                   <property name="textVisible">
+                    <bool>false</bool>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="ZeroProgressBar" name="loadcell3">
+                   <property name="minimum">
+                    <number>-100</number>
+                   </property>
+                   <property name="value">
+                    <number>24</number>
+                   </property>
+                   <property name="textVisible">
+                    <bool>false</bool>
                    </property>
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
@@ -1619,6 +1628,11 @@ Setup</string>
    <class>TouchButton</class>
    <extends>QPushButton</extends>
    <header>touchbutton</header>
+  </customwidget>
+  <customwidget>
+   <class>ZeroProgressBar</class>
+   <extends>QProgressBar</extends>
+   <header>zeroprogressbar</header>
   </customwidget>
  </customwidgets>
  <tabstops>
