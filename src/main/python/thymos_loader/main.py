@@ -535,6 +535,7 @@ if __name__ == "__main__":
     appctxt = ApplicationContext()
     design_path = appctxt.get_resource("design.ui")
     window = TyhmosControlApp(design_path)
+    appctxt.app.setStyle("fusion")
     # window.resize(250, 150)
     window.show()
     exit_code = appctxt.app.exec()
