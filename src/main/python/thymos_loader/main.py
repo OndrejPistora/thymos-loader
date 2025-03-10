@@ -1,6 +1,6 @@
 from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
 # from src.ui.design import Ui_MainWindow
 from serial import Serial
