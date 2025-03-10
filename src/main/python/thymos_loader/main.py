@@ -20,6 +20,7 @@ class TyhmosControlApp(QMainWindow):
         #print pwd
         print("Current Working Directory:", os.getcwd())
         uic.loadUi(design_path, self)
+        self.showMaximized()
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
