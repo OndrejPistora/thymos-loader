@@ -233,8 +233,8 @@ class TyhmosControlApp(QMainWindow):
                 # send command to start receiving data
                 # INIT COMMANDS
                 self.send_command("DATAC 1")
-                self.send_command("MC SET SPEEDMM 20")
-                self.send_command("MC SET ACCEL 50")
+                self.send_command("MC SET SPEEDMM 30")
+                self.send_command("MC SET ACCEL 100")
                 # ToDo use watchdog
                 #self.send_command("MISC SET WATCHDOG_ENABLED 1")
                 
