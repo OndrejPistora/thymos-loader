@@ -1,17 +1,16 @@
-from PyQt6.QtWidgets import QApplication, QPushButton
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtWidgets import QPushButton
+from PyQt6.QtCore import Qt, QEvent, QPointF
 from PyQt6.QtGui import QMouseEvent
 
 class TouchButton(QPushButton):
-    def __init__(self, text, parent=None):
-        super().__init__(text, parent)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_AcceptTouchEvents)  # Enable touch events
         self.installEventFilter(self)  # Install event filter to handle touch
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.TouchBegin:  # Detect finger press
-            print(f"Touch DOWN on {self.text()}")
-            touch_point = self.mapToGlobal(self.rect().center()).toPointF()  # Convert to QPointF
+        if event.type() == QEvent.Type.TouchBegin:  # Detect touch press
+            touch_point = self.mapToGlobal(self.rect().center()).toPointF()
             mouse_event = QMouseEvent(
                 QEvent.Type.MouseButtonPress,
                 touch_point,
@@ -19,12 +18,12 @@ class TouchButton(QPushButton):
                 Qt.MouseButton.LeftButton,
                 Qt.KeyboardModifier.NoModifier
             )
-            QApplication.sendEvent(self, mouse_event)  # Trigger mouse press
+            self.setDown(True)  # Visually press button
+            self.clicked.emit()  # Manually trigger clicked() signal
             return True
 
-        elif event.type() == QEvent.Type.TouchEnd:  # Detect finger release
-            print(f"Touch UP on {self.text()}")
-            touch_point = self.mapToGlobal(self.rect().center()).toPointF()  # Convert to QPointF
+        elif event.type() == QEvent.Type.TouchEnd:  # Detect touch release
+            touch_point = self.mapToGlobal(self.rect().center()).toPointF()
             mouse_event = QMouseEvent(
                 QEvent.Type.MouseButtonRelease,
                 touch_point,
@@ -32,7 +31,7 @@ class TouchButton(QPushButton):
                 Qt.MouseButton.NoButton,
                 Qt.KeyboardModifier.NoModifier
             )
-            QApplication.sendEvent(self, mouse_event)  # Trigger mouse release
+            self.setDown(False)  # Release button visually
             return True
 
         return super().eventFilter(obj, event)

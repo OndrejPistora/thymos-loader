@@ -2,7 +2,6 @@ from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
-from touchbutton import TouchButton
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
