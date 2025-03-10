@@ -21,6 +21,8 @@ class TouchWindow(QMainWindow):
         return super().eventFilter(obj, event)
 
 if __name__ == "__main__":
+    import os
+    os.environ["QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS"] = "invertx=false,inverty=false"
     app = QApplication([])
     window = TouchWindow()
     window.show()
