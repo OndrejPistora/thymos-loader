@@ -19,7 +19,7 @@ class TouchButton(QPushButton):
                 Qt.KeyboardModifier.NoModifier
             )
             self.setDown(True)  # Visually press button
-            self.clicked.emit()  # Manually trigger clicked() signal
+            self.pressed.emit()  # Manually trigger pressed() signal
             return True
 
         elif event.type() == QEvent.Type.TouchEnd:  # Detect touch release
@@ -32,6 +32,7 @@ class TouchButton(QPushButton):
                 Qt.KeyboardModifier.NoModifier
             )
             self.setDown(False)  # Release button visually
+            self.released.emit()  # Manually trigger pressed() signal
             return True
 
         return super().eventFilter(obj, event)
