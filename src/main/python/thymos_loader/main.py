@@ -479,7 +479,7 @@ class TyhmosControlApp(QMainWindow):
             self.loadcell2.setValue(int(loadcells[1]))
             self.loadcell3.setValue(int(loadcells[2]))
             # values
-            self.nLC1.display(int(loadcells[0]))
+            self.nLC1.setText(f"{loadcells[0]:.2f} N")
             self.nLC2.setText(f"{loadcells[1]:.2f} N") 
             self.nLC3.setText(f"{loadcells[2]:.2f} N") 
 
