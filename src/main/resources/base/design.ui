@@ -696,7 +696,7 @@ Setup</string>
            <item alignment="Qt::AlignTop">
             <widget class="QGroupBox" name="gbHome">
              <property name="title">
-              <string>GroupBox</string>
+              <string>Machine settings</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
@@ -846,7 +846,7 @@ Setup</string>
                   <number>6</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="buttonUp">
+                  <widget class="TouchButton" name="buttonUp">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -871,7 +871,7 @@ Setup</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="buttonDown">
+                  <widget class="TouchButton" name="buttonDown">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1590,6 +1590,11 @@ Setup</string>
    <class>PlotWidget</class>
    <extends>QGraphicsView</extends>
    <header>pyqtgraph</header>
+  </customwidget>
+  <customwidget>
+   <class>TouchButton</class>
+   <extends>QPushButton</extends>
+   <header>touchbutton</header>
   </customwidget>
  </customwidgets>
  <tabstops>
