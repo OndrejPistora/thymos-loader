@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtCore import Qt, QEvent, QPointF
 from PyQt6.QtGui import QMouseEvent
 
 class TouchButton(QPushButton):
@@ -11,9 +11,10 @@ class TouchButton(QPushButton):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.TouchBegin:  # Detect finger press
             print(f"Touch DOWN on {self.text()}")
+            touch_point = self.mapToGlobal(self.rect().center()).toPointF()  # Convert to QPointF
             mouse_event = QMouseEvent(
                 QEvent.Type.MouseButtonPress,
-                self.rect().center(),  # Center of the button
+                touch_point,
                 Qt.MouseButton.LeftButton,
                 Qt.MouseButton.LeftButton,
                 Qt.KeyboardModifier.NoModifier
@@ -23,9 +24,10 @@ class TouchButton(QPushButton):
 
         elif event.type() == QEvent.Type.TouchEnd:  # Detect finger release
             print(f"Touch UP on {self.text()}")
+            touch_point = self.mapToGlobal(self.rect().center()).toPointF()  # Convert to QPointF
             mouse_event = QMouseEvent(
                 QEvent.Type.MouseButtonRelease,
-                self.rect().center(),
+                touch_point,
                 Qt.MouseButton.LeftButton,
                 Qt.MouseButton.NoButton,
                 Qt.KeyboardModifier.NoModifier
