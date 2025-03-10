@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>818</width>
-    <height>797</height>
+    <width>852</width>
+    <height>782</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -991,7 +991,13 @@ Setup</string>
                     <string> mm/s</string>
                    </property>
                    <property name="decimals">
-                    <number>0</number>
+                    <number>2</number>
+                   </property>
+                   <property name="maximum">
+                    <double>5.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -1020,7 +1026,7 @@ Setup</string>
                     <number>0</number>
                    </property>
                    <property name="maximum">
-                    <double>1000.000000000000000</double>
+                    <double>10000.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -1516,56 +1522,47 @@ Setup</string>
          <widget class="QWidget" name="View">
           <layout class="QVBoxLayout" name="verticalLayout_22">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_9">
-             <item>
-              <widget class="QTreeWidget" name="wfTree">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>200</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
+            <widget class="QFrame" name="frame_5">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_16">
+              <item>
+               <widget class="QTreeWidget" name="wfTree">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>1</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-               </column>
-              </widget>
-             </item>
-             <item>
-              <widget class="QTabWidget" name="tabWidget_2">
-               <property name="currentIndex">
-                <number>1</number>
-               </property>
-               <widget class="QWidget" name="tab_2">
-                <attribute name="title">
-                 <string>Tab 1</string>
-                </attribute>
-                <layout class="QVBoxLayout" name="verticalLayout_21">
-                 <item>
-                  <widget class="QTableWidget" name="tableWidget"/>
-                 </item>
-                </layout>
+                <property name="minimumSize">
+                 <size>
+                  <width>200</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <column>
+                 <property name="text">
+                  <string notr="true">1</string>
+                 </property>
+                </column>
                </widget>
-               <widget class="QWidget" name="tab_4">
-                <attribute name="title">
-                 <string>Tab 2</string>
-                </attribute>
-                <layout class="QVBoxLayout" name="verticalLayout_20">
-                 <item>
-                  <widget class="PlotWidget" name="graphView"/>
-                 </item>
-                </layout>
+              </item>
+              <item>
+               <widget class="PlotWidget" name="graphView">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>3</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                </widget>
-              </widget>
-             </item>
-            </layout>
+              </item>
+             </layout>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -1659,10 +1656,6 @@ Setup</string>
   <tabstop>inputExperimentNotes</tabstop>
   <tabstop>butExport</tabstop>
   <tabstop>butClear</tabstop>
-  <tabstop>wfTree</tabstop>
-  <tabstop>tabWidget_2</tabstop>
-  <tabstop>tableWidget</tabstop>
-  <tabstop>graphView</tabstop>
   <tabstop>buttonSend</tabstop>
   <tabstop>commandLineEdit</tabstop>
   <tabstop>commandLineOutput</tabstop>
