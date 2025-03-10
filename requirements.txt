@@ -2,4 +2,4 @@ PyQt6
 pyserial
 pyqtgraph
 polars
-fbs
+fbs_pro-1.2.7.tar.gz

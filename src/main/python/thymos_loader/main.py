@@ -46,7 +46,7 @@ class TyhmosControlApp(QMainWindow):
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
         self.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
 
-        self.testSuccess.clicked.connect(self.dummy_measurement)
+        # self.testSuccess.clicked.connect(self.dummy_measurement)
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
