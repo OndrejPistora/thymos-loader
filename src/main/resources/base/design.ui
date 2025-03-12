@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -606,14 +606,14 @@ Setup</string>
                   <widget class="QFrame" name="frame">
                    <layout class="QVBoxLayout" name="verticalLayout_4">
                     <item>
-                     <widget class="QCheckBox" name="checkBox">
+                     <widget class="QCheckBox" name="lcEnable1">
                       <property name="text">
                        <string>Enable loadcell 1</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QCheckBox" name="checkBox_2">
+                     <widget class="QCheckBox" name="lcEnable2">
                       <property name="text">
                        <string>Enable loadcell 2</string>
                       </property>
@@ -623,7 +623,7 @@ Setup</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QCheckBox" name="checkBox_3">
+                     <widget class="QCheckBox" name="lcEnable3">
                       <property name="text">
                        <string>Enable loadcell 3</string>
                       </property>
@@ -1645,9 +1645,9 @@ Setup</string>
   <tabstop>buttonTare1</tabstop>
   <tabstop>buttonTare2</tabstop>
   <tabstop>buttonTare3</tabstop>
-  <tabstop>checkBox</tabstop>
-  <tabstop>checkBox_2</tabstop>
-  <tabstop>checkBox_3</tabstop>
+  <tabstop>lcEnable1</tabstop>
+  <tabstop>lcEnable2</tabstop>
+  <tabstop>lcEnable3</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>graphTimeBased</tabstop>
   <tabstop>graphPosBased</tabstop>

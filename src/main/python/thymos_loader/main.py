@@ -398,6 +398,12 @@ class TyhmosControlApp(QMainWindow):
             writer.writerow(headers)
 
             # Write data with polars
+            # Export only enabled loadcells based on checkboxes lcEnable1, lcEnable2, lcEnable3
+            self.graph_pos_data = self.graph_pos_data.filter(
+                (self.graph_pos_data["loadcell1"].is_not_null() & self.lcEnable1.isChecked()) |
+                (self.graph_pos_data["loadcell2"].is_not_null() & self.lcEnable2.isChecked()) |
+                (self.graph_pos_data["loadcell3"].is_not_null() & self.lcEnable3.isChecked())
+            )
             self.graph_pos_data.write_csv(filepath)
 
         print(f"Data exported successfully to {filepath}")
