@@ -561,10 +561,13 @@ class TyhmosControlApp(QMainWindow):
         def add_items(parent, path):
             for item in sorted(os.listdir(path)):
                 item_path = os.path.join(path, item)
-                tree_item = QTreeWidgetItem(parent, [item])
-                tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)  # Store full path
-                if os.path.isdir(item_path):  # Recursively add subfolders
+                if os.path.isdir(item_path):  # Keep directories for navigation
+                    tree_item = QTreeWidgetItem(parent, [item])
+                    tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
                     add_items(tree_item, item_path)
+                elif item.endswith(".csv"):  # Only include CSV files
+                    tree_item = QTreeWidgetItem(parent, [item])
+                    tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
 
         root_item = QTreeWidgetItem(self.wfTree, [self.selected_folder])
         root_item.setData(0, Qt.ItemDataRole.UserRole, self.selected_folder)
