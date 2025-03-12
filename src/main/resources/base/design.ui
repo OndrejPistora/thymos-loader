@@ -610,6 +610,9 @@ Setup</string>
                       <property name="text">
                        <string>Enable loadcell 1</string>
                       </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
                      </widget>
                     </item>
                     <item>
@@ -626,6 +629,9 @@ Setup</string>
                      <widget class="QCheckBox" name="lcEnable3">
                       <property name="text">
                        <string>Enable loadcell 3</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
