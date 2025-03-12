@@ -576,16 +576,16 @@ class TyhmosControlApp(QMainWindow):
         self.wfTree.expandAll()  # Expand all items
 
     def load_selected_files(self):
-        """Load selected CSV files and plot them on the graph."""
+        """Load selected CSV files, skipping metadata, and plot them."""
         selected_items = self.wfTree.selectedItems()
         if not selected_items:
             return
 
         self.graph_pos_data = self.INIT_POS_DATA.clone()  # Reset graph data
-        self.graphPosBased.clear()  # Clear previous plots
-        self.graphPosBased.addLegend()  # Re-add legend after clearing
+        self.graphView.clear()  # Clear previous plots
+        self.graphView.addLegend()  # Ensure legend updates dynamically
 
-        colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Different colors for files
+        colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Different colors for each file
         color_index = 0
 
         for item in selected_items:
@@ -594,16 +594,38 @@ class TyhmosControlApp(QMainWindow):
                 continue  # Skip non-CSV files
 
             try:
-                df = pl.read_csv(file_path).fill_null(0).cast(pl.Float64)
+                # Read file and find the correct header
+                with open(file_path, 'r', newline='') as f:
+                    lines = f.readlines()
 
-                if {"position", "loadcell1", "loadcell2", "loadcell3"}.issubset(df.columns):
-                    x_data = df["position"].to_list()
-                    file_name = os.path.basename(file_path)
-                    for i in range(3):
-                        y_data = df[f"loadcell{i+1}"].to_list()
+                header_index = -1
+                for i, line in enumerate(lines):
+                    if "position" in line and ("loadcell1" in line or "loadcell2" in line or "loadcell3" in line):
+                        header_index = i
+                        break
+
+                if header_index == -1:
+                    self.show_message(f"Could not find data header in {file_path}", error=True)
+                    continue
+
+                # Read CSV starting from the header
+                df = pl.read_csv(
+                    file_path, 
+                    skip_rows=header_index,  # Start reading from the header
+                    truncate_ragged_lines=True  # Ensure inconsistent rows don't break parsing
+                ).fill_null(0).cast(pl.Float64)
+
+                # Check if necessary columns exist
+                x_data = df["position"].to_list()
+                file_name = os.path.basename(file_path)
+
+                # for optional loadcell columns plot them
+                for col in df.columns:
+                    if col.startswith("loadcell"):
+                        y_data = df[col].to_list()
                         color = colors[color_index % len(colors)]
-                        self.graphPosBased.plot(x_data, y_data, pen=pg.mkPen(color), name=f"{file_name} - Loadcell {i+1}")
-                    color_index += 1  # Change color for the next file
+                        self.graphView.plot(x_data, y_data, pen=pg.mkPen(color), name=f"{file_name} - {col}")
+                        color_index += 1  # Cycle through colors
 
             except Exception as e:
                 self.show_message(f"Failed to load {file_path}: {e}", error=True)
