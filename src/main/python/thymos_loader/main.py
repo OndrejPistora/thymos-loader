@@ -49,6 +49,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
         self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
         self.butRefreshTree.clicked.connect(self.populate_wfTree)
+        self.wfTree.itemSelectionChanged.connect(self.load_selected_files)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
@@ -582,6 +583,10 @@ class TyhmosControlApp(QMainWindow):
 
         self.graph_pos_data = self.INIT_POS_DATA.clone()  # Reset graph data
         self.graphPosBased.clear()  # Clear previous plots
+        self.graphPosBased.addLegend()  # Re-add legend after clearing
+
+        colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Different colors for files
+        color_index = 0
 
         for item in selected_items:
             file_path = item.data(0, Qt.ItemDataRole.UserRole)
@@ -593,9 +598,12 @@ class TyhmosControlApp(QMainWindow):
 
                 if {"position", "loadcell1", "loadcell2", "loadcell3"}.issubset(df.columns):
                     x_data = df["position"].to_list()
+                    file_name = os.path.basename(file_path)
                     for i in range(3):
                         y_data = df[f"loadcell{i+1}"].to_list()
-                        self.curves_pos[i].setData(x_data, y_data, name=os.path.basename(file_path))
+                        color = colors[color_index % len(colors)]
+                        self.graphPosBased.plot(x_data, y_data, pen=pg.mkPen(color), name=f"{file_name} - Loadcell {i+1}")
+                    color_index += 1  # Change color for the next file
 
             except Exception as e:
                 self.show_message(f"Failed to load {file_path}: {e}", error=True)
