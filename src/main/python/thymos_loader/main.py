@@ -404,6 +404,8 @@ class TyhmosControlApp(QMainWindow):
                 enabled_cols.append("loadcell3")
             self.graph_pos_data = self.graph_pos_data.select(enabled_cols)
             # Fill null values with 0
+            print(self.graph_pos_data)
+            self.graph_pos_data = self.graph_pos_data.with_columns(pl.all().cast(pl.Float64))
             self.graph_pos_data = self.graph_pos_data.fill_null(0)
             print(self.graph_pos_data)
             writer.writerow(self.graph_pos_data.columns)
