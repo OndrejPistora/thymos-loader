@@ -49,7 +49,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
         self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
         self.butRefreshTree.clicked.connect(self.populate_wfTree)
-        self.wfTree.itemSelectionChanged.connect(self.load_selected_files)
+        self.wfTree.itemSelectionChanged.connect(self.handle_tree_selection)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
@@ -575,50 +575,118 @@ class TyhmosControlApp(QMainWindow):
         add_items(root_item, self.selected_folder)
         self.wfTree.expandAll()  # Expand all items
 
+    def handle_tree_selection(self):
+        """Ensure folder and file selection consistency based on user actions."""
+        # selected_items = self.wfTree.selectedItems()
+        # selected_paths = {item.data(0, Qt.ItemDataRole.UserRole) for item in selected_items}
+
+        # # Track previous selection state
+        # previously_selected = getattr(self, "_prev_selected_items", set())
+        # currently_selected = set(selected_paths)
+
+        # added_items = currently_selected - previously_selected
+        # removed_items = previously_selected - currently_selected
+        # print("Added items:")
+        # print(added_items)
+        # print("Removed items:")
+        # print(removed_items)
+
+        # def get_all_tree_items(self):
+        #     """Recursively get all items in the QTreeWidget (wfTree)."""
+        #     all_items = []
+        #     root = self.wfTree.invisibleRootItem()
+
+        #     def collect_items(parent):
+        #         for i in range(parent.childCount()):
+        #             child = parent.child(i)
+        #             all_items.append(child)
+        #             collect_items(child)  # Recurse into subfolders
+
+        #     collect_items(root)
+        #     return all_items
+        
+        # for item in get_all_tree_items(self):
+        #     print(item)
+        #     item_path = item.data(0, Qt.ItemDataRole.UserRole)
+        #     print(item_path)
+
+        #     if item_path in added_items:  # User just selected this
+        #         if os.path.isdir(item_path):  # Folder selected
+        #             print("Folder selected", item_path)
+        #             # ToDo select everyhing recursively
+        #             for i in range(item.childCount()):
+        #                 child = item.child(i)
+        #                 child.setSelected(True)
+        #             # ToDo check siblings also?
+        #         else:  # File selected, check if all siblings are selected
+        #             print("File selected", item_path)
+        #             parent = item.parent()
+        #             if parent and all(parent.child(i).isSelected() for i in range(parent.childCount())):
+        #                 parent.setSelected(True)
+
+        #     elif item_path in removed_items:  # User just deselected this
+        #         if os.path.isdir(item_path):  # Folder deselected
+        #             print("Folder deselected", item_path)
+        #             for i in range(item.childCount()):
+        #                 child = item.child(i)
+        #                 child.setSelected(False)
+        #         else:  # File deselected, deselect parent if any file remains unselected
+        #             print("File deselected", item_path)
+        #             parent = item.parent()
+        #             if parent:
+        #                 if any(not parent.child(i).isSelected() for i in range(parent.childCount())):
+        #                     parent.setSelected(False)
+
+        # # Store the new selection state for future reference
+        # self._prev_selected_items = set({item.data(0, Qt.ItemDataRole.UserRole) for item in selected_items})
+
+        # Load files after updating selection
+        self.load_selected_files()
+
     def load_selected_files(self):
         """Load selected CSV files, skipping metadata, and plot them."""
         selected_items = self.wfTree.selectedItems()
         if not selected_items:
             return
-
+ 
         self.graph_pos_data = self.INIT_POS_DATA.clone()  # Reset graph data
         self.graphView.clear()  # Clear previous plots
         self.graphView.addLegend()  # Ensure legend updates dynamically
-
+ 
         colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Different colors for each file
         color_index = 0
-
+ 
         for item in selected_items:
             file_path = item.data(0, Qt.ItemDataRole.UserRole)
             if not file_path.endswith(".csv"):
                 continue  # Skip non-CSV files
-
+ 
             try:
                 # Read file and find the correct header
                 with open(file_path, 'r', newline='') as f:
                     lines = f.readlines()
-
+ 
                 header_index = -1
                 for i, line in enumerate(lines):
                     if "position" in line and ("loadcell1" in line or "loadcell2" in line or "loadcell3" in line):
                         header_index = i
                         break
-
+ 
                 if header_index == -1:
                     self.show_message(f"Could not find data header in {file_path}", error=True)
                     continue
-
+ 
                 # Read CSV starting from the header
                 df = pl.read_csv(
                     file_path, 
                     skip_rows=header_index,  # Start reading from the header
                     truncate_ragged_lines=True  # Ensure inconsistent rows don't break parsing
                 ).fill_null(0).cast(pl.Float64)
-
+ 
                 # Check if necessary columns exist
                 x_data = df["position"].to_list()
                 file_name = os.path.basename(file_path)
-
+ 
                 # for optional loadcell columns plot them
                 for col in df.columns:
                     if col.startswith("loadcell"):
@@ -626,7 +694,7 @@ class TyhmosControlApp(QMainWindow):
                         color = colors[color_index % len(colors)]
                         self.graphView.plot(x_data, y_data, pen=pg.mkPen(color), name=f"{file_name} - {col}")
                         color_index += 1  # Cycle through colors
-
+ 
             except Exception as e:
                 self.show_message(f"Failed to load {file_path}: {e}", error=True)
 
