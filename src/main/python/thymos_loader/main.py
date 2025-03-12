@@ -1,6 +1,6 @@
 from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
-from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog, QTreeWidgetItem
 from PyQt6.QtCore import QTimer, QDateTime
 from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtCore import Qt
@@ -48,6 +48,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonTare1.clicked.connect(lambda: self.send_command_tare(1))
         self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
         self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
+        self.butRefreshTree.clicked.connect(self.populate_wfTree)
 
         # Trigger sendButton when Enter is pressed in commandLineEdit
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
@@ -550,6 +551,51 @@ class TyhmosControlApp(QMainWindow):
         msg_box.setText(message)
         msg_box.setWindowTitle("Error" if error else "Notification")
         msg_box.exec()
+
+    def populate_wfTree(self):
+        """Populate wfTree with files and subfolders in the working directory."""
+        if not self.selected_folder:
+            self.show_message("Please select a folder first.", error=True)
+        self.wfTree.clear()  # Clear previous entries
+
+        def add_items(parent, path):
+            for item in sorted(os.listdir(path)):
+                item_path = os.path.join(path, item)
+                tree_item = QTreeWidgetItem(parent, [item])
+                tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)  # Store full path
+                if os.path.isdir(item_path):  # Recursively add subfolders
+                    add_items(tree_item, item_path)
+
+        root_item = QTreeWidgetItem(self.wfTree, [self.selected_folder])
+        root_item.setData(0, Qt.ItemDataRole.UserRole, self.selected_folder)
+        add_items(root_item, self.selected_folder)
+        self.wfTree.expandAll()  # Expand all items
+
+    def load_selected_files(self):
+        """Load selected CSV files and plot them on the graph."""
+        selected_items = self.wfTree.selectedItems()
+        if not selected_items:
+            return
+
+        self.graph_pos_data = self.INIT_POS_DATA.clone()  # Reset graph data
+        self.graphPosBased.clear()  # Clear previous plots
+
+        for item in selected_items:
+            file_path = item.data(0, Qt.ItemDataRole.UserRole)
+            if not file_path.endswith(".csv"):
+                continue  # Skip non-CSV files
+
+            try:
+                df = pl.read_csv(file_path).fill_null(0).cast(pl.Float64)
+
+                if {"position", "loadcell1", "loadcell2", "loadcell3"}.issubset(df.columns):
+                    x_data = df["position"].to_list()
+                    for i in range(3):
+                        y_data = df[f"loadcell{i+1}"].to_list()
+                        self.curves_pos[i].setData(x_data, y_data, name=os.path.basename(file_path))
+
+            except Exception as e:
+                self.show_message(f"Failed to load {file_path}: {e}", error=True)
 
 
 if __name__ == "__main__":
