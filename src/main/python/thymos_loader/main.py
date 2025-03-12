@@ -2,6 +2,8 @@ from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog
 from PyQt6.QtCore import QTimer, QDateTime
+from PyQt6.QtGui import QShortcut, QKeySequence
+from PyQt6.QtCore import Qt
 from serial import Serial
 from serial.tools import list_ports
 import pyqtgraph as pg
@@ -116,6 +118,9 @@ class TyhmosControlApp(QMainWindow):
 
         # Set the initial button highlight
         self.switch_page("Connect", self.butConnect)
+        # Add secret keyboard shortcut to trigger dummy_measurement()
+        self.secret_shortcut = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_D), self)
+        self.secret_shortcut.activated.connect(self.dummy_measurement)
 
     def update_sample_index(self):
         self.firstSampleIndex = True
@@ -131,6 +136,7 @@ class TyhmosControlApp(QMainWindow):
         self.last_pos = 0
     
     def dummy_measurement(self):
+        self.set_measurement_state("START")
         self.graph_pos_data = pl.DataFrame({
             "position": [1, 2, 3],
             "loadcell1": [None, None, None],
