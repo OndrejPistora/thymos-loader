@@ -324,33 +324,33 @@ class TyhmosControlApp(QMainWindow):
                 self.firstSampleIndex = True
 
             elif transition == "EXPORT":
-                if self.selected_folder:
-                    self.measurement_state = "ready"
-                    self.lMeasurementState.setText("Ready")
-                    self.buttonStartStop.setText("Start")
-                    self.lMeasurementState.setStyleSheet("")
-                    self.buttonStartStop.setEnabled(True)
-                    self.butExport.setEnabled(False)
-                    self.butClear.setEnabled(False)
-                    #Export data to CSV
-                    metadata = {
-                        "Title": self.inputExperimentTitle.text(),
-                        "Sample Index": self.numSampleIndex.value(),
-                        "Sample": self.inputExperimentSample.text(),
-                        "Author": self.inputExperimentAuthor.text(),
-                        "Date": self.inputExperimentDate.text(),
-                        "Description": self.inputExperimentDescription.toPlainText(),
-                        "Notes": self.inputExperimentNotes.toPlainText(),
-                        "Speed": self.numExperimentSpeed.value(),
-                        }
-                    filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
-                    self.export_to_csv(
-                        self.graph_pos_data,
-                        self.selected_folder,
-                        filename,
-                        metadata)
-                else:
-                    self.show_message("Please select an output folder first.", error=True)
+                if not self.selected_folder:
+                    self.select_folder()
+
+                self.measurement_state = "ready"
+                self.lMeasurementState.setText("Ready")
+                self.buttonStartStop.setText("Start")
+                self.lMeasurementState.setStyleSheet("")
+                self.buttonStartStop.setEnabled(True)
+                self.butExport.setEnabled(False)
+                self.butClear.setEnabled(False)
+                #Export data to CSV
+                metadata = {
+                    "Title": self.inputExperimentTitle.text(),
+                    "Sample Index": self.numSampleIndex.value(),
+                    "Sample": self.inputExperimentSample.text(),
+                    "Author": self.inputExperimentAuthor.text(),
+                    "Date": self.inputExperimentDate.text(),
+                    "Description": self.inputExperimentDescription.toPlainText(),
+                    "Notes": self.inputExperimentNotes.toPlainText(),
+                    "Speed": self.numExperimentSpeed.value(),
+                    }
+                filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
+                self.export_to_csv(
+                    self.graph_pos_data,
+                    self.selected_folder,
+                    filename,
+                    metadata)
 
 
     def measurementStartStop(self):
