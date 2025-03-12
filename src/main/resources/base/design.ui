@@ -1566,6 +1566,9 @@ Setup</string>
                      <height>0</height>
                     </size>
                    </property>
+                   <property name="selectionMode">
+                    <enum>QAbstractItemView::MultiSelection</enum>
+                   </property>
                    <column>
                     <property name="text">
                      <string notr="true">1</string>
@@ -1575,9 +1578,6 @@ Setup</string>
                  </item>
                 </layout>
                </widget>
-              </item>
-              <item>
-               <widget class="QTreeView" name="treeView"/>
               </item>
               <item>
                <widget class="PlotWidget" name="graphView">
