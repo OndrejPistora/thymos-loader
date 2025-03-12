@@ -393,18 +393,21 @@ class TyhmosControlApp(QMainWindow):
                 writer.writerow([key, value])
             writer.writerow([])  # Empty row to separate metadata from data
 
-            # Extract columns dynamically (keeping "position" first)
-            headers = ["position"] + [col for col in self.graph_pos_data.columns if col != "position"]
-            writer.writerow(headers)
-
             # Write data with polars
-            # Export only enabled loadcells based on checkboxes lcEnable1, lcEnable2, lcEnable3
-            self.graph_pos_data = self.graph_pos_data.filter(
-                (self.graph_pos_data["loadcell1"].is_not_null() & self.lcEnable1.isChecked()) |
-                (self.graph_pos_data["loadcell2"].is_not_null() & self.lcEnable2.isChecked()) |
-                (self.graph_pos_data["loadcell3"].is_not_null() & self.lcEnable3.isChecked())
-            )
-            self.graph_pos_data.write_csv(filepath)
+            # Keep only the columns that are enabled
+            enabled_cols = ["position"]
+            if self.lcEnable1.isChecked():
+                enabled_cols.append("loadcell1")
+            if self.lcEnable2.isChecked():
+                enabled_cols.append("loadcell2")
+            if self.lcEnable3.isChecked():
+                enabled_cols.append("loadcell3")
+            self.graph_pos_data = self.graph_pos_data.select(enabled_cols)
+            # Fill null values with 0
+            self.graph_pos_data = self.graph_pos_data.fill_null(0)
+            print(self.graph_pos_data)
+            writer.writerow(self.graph_pos_data.columns)
+            writer.writerows(self.graph_pos_data.iter_rows())
 
         print(f"Data exported successfully to {filepath}")
 
