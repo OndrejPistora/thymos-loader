@@ -92,6 +92,9 @@ class TyhmosControlApp(QMainWindow):
         self.graph_pos_data = self.INIT_POS_DATA.clone()
         self.last_pos = 0
 
+        self.currentForce = 0
+        self.maxExpForce = 0
+
         self.firstSampleIndex = True
         self.numSampleIndex.editingFinished.connect(self.update_sample_index)
 
@@ -424,9 +427,27 @@ class TyhmosControlApp(QMainWindow):
     def send_command_tare(self, lc_num):
         self.send_command(f"LC TARE {lc_num - 1}")
 
-    def send_command_experiment_standard(self, displacement, speed, max_force):
-        #ToDo
-        self.send_command(f"EXP STANDARD {displacement} {speed} {max_force} 1 1 0")
+    def check_experiment_stop(self):
+        print("Checking experiment stop")
+        print(self.currentForce, self.maxExpForce, self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100))
+        if self.measurement_state == "measuring":
+            if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
+                self.send_command("EXP STOP")
+                self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
+                self.set_measurement_state("SUCCESS")
+                self.exp_stop_timer.stop()
+
+    def send_command_experiment_standard(self, dist, speed, max_force):
+        # save initial position
+        self.initial_exp_position = self.currentPos
+        self.maxExpForce = 0
+        # run experiment
+        self.send_command(f"EXP STANDARD {dist} {speed} {max_force} 1 1 0")
+        # stop experiment if force_decrease_to_stop is reached or max_force is reached or distance is reached
+        # start timer to check experiment stop
+        self.exp_stop_timer = QTimer()
+        self.exp_stop_timer.timeout.connect(self.check_experiment_stop)
+        self.exp_stop_timer.start(10)
 
     def send_command_line(self):
         """Send a command manually entered in the commandLineEdit."""
@@ -532,8 +553,10 @@ class TyhmosControlApp(QMainWindow):
                         data = line.split(",")
                         timestamp = data[0]
                         curPos = data[1]
+                        self.currentPos = curPos
                         curVel = data[2]
-                        loadcells = [data[3], data[4], data[5]]
+                        loadcells = [- data[3], - data[4], - data[5]]
+                        self.currentForce = loadcells[1]
 
                         # Convert from string to float for plotting
                         loadcells = [float(i) for i in loadcells]
