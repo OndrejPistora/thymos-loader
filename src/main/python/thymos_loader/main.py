@@ -428,8 +428,6 @@ class TyhmosControlApp(QMainWindow):
         self.send_command(f"LC TARE {lc_num - 1}")
 
     def check_experiment_stop(self):
-        print("Checking experiment stop")
-        print(self.currentForce, self.maxExpForce, self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100))
         if self.measurement_state == "measuring":
             if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
                 self.send_command("EXP STOP")
