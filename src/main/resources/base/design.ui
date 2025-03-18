@@ -1407,7 +1407,7 @@ Setup</string>
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="buttonStartStop">
+                        <widget class="QPushButton" name="buttonStart">
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                            <horstretch>0</horstretch>
@@ -1517,7 +1517,7 @@ Setup</string>
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="butExport">
+                        <widget class="QPushButton" name="buttonExport">
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -1545,7 +1545,7 @@ Setup</string>
                         </widget>
                        </item>
                        <item>
-                        <widget class="QPushButton" name="butClear">
+                        <widget class="QPushButton" name="buttonClear">
                          <property name="enabled">
                           <bool>false</bool>
                          </property>
@@ -1573,6 +1573,13 @@ Setup</string>
                         </widget>
                        </item>
                       </layout>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="lExportState">
+                      <property name="text">
+                       <string>ready</string>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1743,13 +1750,13 @@ Setup</string>
   <tabstop>numSampleIndex</tabstop>
   <tabstop>inputExperimentSample</tabstop>
   <tabstop>inputExperimentNotes</tabstop>
-  <tabstop>butExport</tabstop>
-  <tabstop>butClear</tabstop>
+  <tabstop>buttonExport</tabstop>
+  <tabstop>buttonClear</tabstop>
   <tabstop>buttonSend</tabstop>
   <tabstop>commandLineEdit</tabstop>
   <tabstop>commandLineOutput</tabstop>
   <tabstop>buttonHelp</tabstop>
-  <tabstop>buttonStartStop</tabstop>
+  <tabstop>buttonStart</tabstop>
   <tabstop>buttonStop</tabstop>
  </tabstops>
  <resources/>

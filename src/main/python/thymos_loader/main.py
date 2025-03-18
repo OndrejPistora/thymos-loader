@@ -41,7 +41,12 @@ class TyhmosControlApp(QMainWindow):
 
         # Connect buttons to their respective actions
         self.buttonConnect.clicked.connect(self.connect_serial)
-        self.buttonStartStop.clicked.connect(self.measurementStartStop)
+        self.buttonStart.clicked.connect(self.measurementStart)
+        self.buttonStop.clicked.connect(self.measurementStop)
+        self.buttonClear.clicked.connect(self.ask_clear)
+        self.buttonExport.clicked.connect(self.exportExperimentData)
+
+
         self.buttonSend.clicked.connect(self.send_command_line)
         self.buttonHome.clicked.connect(self.send_command_home)
         self.buttonHome.setToolTip('Homes the machine.\nThe machine will move up to touch the endstop sensors.\nThe crossbar will be leveled.')
@@ -98,8 +103,6 @@ class TyhmosControlApp(QMainWindow):
         self.firstSampleIndex = True
         self.numSampleIndex.editingFinished.connect(self.update_sample_index)
 
-        self.butClear.clicked.connect(self.ask_clear)
-        self.butExport.clicked.connect(lambda: self.set_measurement_state("EXPORT"))
 
         # Get the StackedWidget
         self.stackedWidget = self.findChild(QWidget, "fMain")
@@ -133,7 +136,10 @@ class TyhmosControlApp(QMainWindow):
     def ask_clear(self):
         reply = QMessageBox.question(self, 'Message', "Are you sure to clear the graph?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
+            self.clear_graph()
             self.set_measurement_state("CLEAR")
+            # do not increment sample index
+            self.firstSampleIndex = True
 
     def clear_graph(self):
         self.graph_pos_data = self.INIT_POS_DATA.clone()
@@ -248,8 +254,6 @@ class TyhmosControlApp(QMainWindow):
                 self.send_command("MC SET ACCEL 100")
                 # ToDo use watchdog
                 #self.send_command("MISC SET WATCHDOG_ENABLED 1")
-                
-
             except Exception as e:
                 self.set_connection_status(False)
                 self.show_message(f"Failed to connect: {e}", error=True)
@@ -277,95 +281,110 @@ class TyhmosControlApp(QMainWindow):
         except Exception as e:
             self.show_message(f"Failed to send command: {e}", error=True)
 
-    def set_measurement_state(self, transition):
-        if self.measurement_state == "ready":
-            if transition == "START":
-                self.measurement_state = "measuring"
-                self.lMeasurementState.setText("Measuring...")
-                self.buttonStartStop.setText("Stop")
-                self.lMeasurementState.setStyleSheet("background-color: lightgreen;")
-                self.butExport.setEnabled(False)
-                self.butClear.setEnabled(False)
-                self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
-                self.clear_graph()
-                if self.firstSampleIndex:
-                    self.firstSampleIndex = False
-                else:
-                    self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
-                dist = self.numExperimentDistance.value()
-                speed = self.numExperimentSpeed.value()
-                max_force = self.numExperimentSafeForce.value()
-                self.send_command_experiment_standard(dist, speed, max_force)
+    def set_measurement_state(self, transition, comment=""):
+        if transition == "CLEAR":
+            self.measurement_state = "CLEAR"
+            self.lMeasurementState.setText("Ready")
+            self.lMeasurementState.setStyleSheet("")
+            self.lMeasurementState2.setText("")
+            self.buttonStart.setEnabled(True)
+            self.buttonStop.setEnabled(False)
+            self.butExport.setEnabled(False)
+            self.butExport.setTest("EXPORT")
+            self.butClear.setEnabled(False)
+        elif transition == "READY":
+            self.measurement_state = "READY"
+            self.lMeasurementState.setText("Ready")
+            self.lMeasurementState.setStyleSheet("")
+            self.lMeasurementState2.setText("")
+            self.buttonStart.setEnabled(True)
+            self.buttonStop.setEnabled(False)
+            self.butExport.setEnabled(True)
+            self.butExport.setTest("EXPORT AGAIN")
+            self.butClear.setEnabled(False)
+        elif transition == "MEASURING":
+            self.measurement_state = "MEASURING"
+            self.lMeasurementState.setText("Measuring...")
+            self.lMeasurementState.setStyleSheet("background-color: lightgreen;")
+            self.lMeasurementState2.setText("Please wait...")
+            self.buttonStart.setEnabled(False)
+            self.buttonStop.setEnabled(True)
+            self.butExport.setEnabled(False)
+            self.butClear.setEnabled(False)
+            self.lExportState.setText("")
+        elif transition == "SUCCESS":
+            self.measurement_state = "SUCCESS"
+            self.lMeasurementState.setText("Success")
+            self.lMeasurementState.setStyleSheet("background-color: green;")
+            self.lMeasurementState2.setText(comment)
+            self.buttonStart.setEnabled(False)
+            self.buttonStop.setEnabled(False)
+            self.butExport.setEnabled(True)
+            self.butClear.setEnabled(True)
+        elif transition == "FAILED":
+            self.measurement_state = "FAILED"
+            self.lMeasurementState.setText("Failed")
+            self.lMeasurementState.setStyleSheet("background-color: lightred;")
+            self.lMeasurementState2.setText(comment)
+            self.buttonStart.setEnabled(False)
+            self.buttonStop.setEnabled(False)
+            self.butExport.setEnabled(True)
+            self.butClear.setEnabled(True)
 
-        elif self.measurement_state == "measuring":
-            if transition == "STOP":
-                self.measurement_state = "done"
-                self.lMeasurementState.setText("Stopped")
-                self.buttonStartStop.setText("Start")
-                self.lMeasurementState.setStyleSheet("background-color: orange;")
-                self.buttonStartStop.setEnabled(False)
-                self.butExport.setEnabled(True)
-                self.butClear.setEnabled(True)
+    def measurementStart(self):
+        self.clear_graph()
+        self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
+        # increment sample index
+        if self.firstSampleIndex:
+            self.firstSampleIndex = False
+        else:
+            self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
+        # start experiment
+        dist = self.numExperimentDistance.value()
+        speed = self.numExperimentSpeed.value()
+        max_force = self.numExperimentSafeForce.value()
+        self.send_command_experiment_standard(dist, speed, max_force)
+        self.set_measurement_state("MEASURING")
 
-            elif transition == "SUCCESS":
-                self.measurement_state = "done"
-                self.lMeasurementState.setText("Done")
-                self.buttonStartStop.setText("Start")
-                self.lMeasurementState.setStyleSheet("background-color: green;")
-                self.buttonStartStop.setEnabled(False)
-                self.butExport.setEnabled(True)
-                self.butClear.setEnabled(True)
+    def measurementStop(self):
+        # stop experiment
+        self.send_command("EXP STOP")
+        # move to intial position
+        self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
+        # stop checkign timer
+        self.exp_stop_timer.stop()
+        # set state to stopped
+        self.set_measurement_state("SUCCESS", "Stopped by user.")
 
-        elif self.measurement_state == "done":
-            if transition == "CLEAR":
-                self.measurement_state = "ready"
-                self.lMeasurementState.setText("Ready")
-                self.buttonStartStop.setText("Start")
-                self.lMeasurementState.setStyleSheet("")
-                self.buttonStartStop.setEnabled(True)
-                self.butExport.setEnabled(False)
-                self.butClear.setEnabled(False)
-                self.clear_graph()
-                self.firstSampleIndex = True
-
-            elif transition == "EXPORT":
-                if not self.selected_folder:
-                    self.select_folder()
-
-                self.measurement_state = "ready"
-                self.lMeasurementState.setText("Ready")
-                self.buttonStartStop.setText("Start")
-                self.lMeasurementState.setStyleSheet("")
-                self.buttonStartStop.setEnabled(True)
-                self.butExport.setEnabled(False)
-                self.butClear.setEnabled(False)
-                #Export data to CSV
-                metadata = {
-                    "Title": self.inputExperimentTitle.text(),
-                    "Sample Index": self.numSampleIndex.value(),
-                    "Sample": self.inputExperimentSample.text(),
-                    "Author": self.inputExperimentAuthor.text(),
-                    "Date": self.inputExperimentDate.text(),
-                    "Description": self.inputExperimentDescription.toPlainText(),
-                    "Notes": self.inputExperimentNotes.toPlainText(),
-                    "Speed": self.numExperimentSpeed.value(),
-                    }
-                filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
-                self.export_to_csv(
-                    self.graph_pos_data,
-                    self.selected_folder,
-                    filename,
-                    metadata)
-
-
-    def measurementStartStop(self):
-        """Send 'Start' command to the connected serial device."""
-        # STOP
-        if self.measurement_state == "ready":
-            self.set_measurement_state("START")
-        # START
-        elif self.measurement_state == "measuring":
-            self.set_measurement_state("STOP")
+    def exportExperimentData(self):
+        if not self.selected_folder:
+            self.select_folder()
+        if not self.inputExperimentTitle.text():
+            self.show_message("Please enter an experiment title.", error=True)
+            # switch to experiment setup page
+            self.switch_page("ExperimentSetup", self.butExperimentSetup)
+            # focus on title input
+            self.inputExperimentTitle.setFocus()
+            return
+        #Export data to CSV
+        metadata = {
+            "Title": self.inputExperimentTitle.text(),
+            "Sample Index": self.numSampleIndex.value(),
+            "Sample": self.inputExperimentSample.text(),
+            "Author": self.inputExperimentAuthor.text(),
+            "Date": self.inputExperimentDate.text(),
+            "Description": self.inputExperimentDescription.toPlainText(),
+            "Notes": self.inputExperimentNotes.toPlainText(),
+            "Speed": self.numExperimentSpeed.value(),
+            "Max force": self.maxExpForce
+            }
+        filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
+        self.export_to_csv(
+            self.graph_pos_data,
+            self.selected_folder,
+            filename,
+            metadata)
+        self.lExportState.setText(f"Exported to {filename}")
 
     def select_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
@@ -428,12 +447,11 @@ class TyhmosControlApp(QMainWindow):
         self.send_command(f"LC TARE {lc_num - 1}")
 
     def check_experiment_stop(self):
-        if self.measurement_state == "measuring":
-            if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
-                self.send_command("EXP STOP")
-                self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
-                self.set_measurement_state("SUCCESS")
-                self.exp_stop_timer.stop()
+        if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
+            self.send_command("EXP STOP")
+            self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
+            self.set_measurement_state("SUCCESS", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
+            self.exp_stop_timer.stop()
 
     def send_command_experiment_standard(self, dist, speed, max_force):
         # save initial position
@@ -545,7 +563,7 @@ class TyhmosControlApp(QMainWindow):
                 # Process all complete lines
                 for line in lines[:-1]:  # Skip the incomplete last line
                     line = line.strip()
-                    if line.startswith("DS"):  # Process machine data
+                    if line.startswith("DS"):  # Process machine data (DATAC)
                         # print(line)
                         line = line.strip()[2:]
                         data = line.split(",")
@@ -559,8 +577,12 @@ class TyhmosControlApp(QMainWindow):
                         # Convert from string to float for plotting
                         loadcells = [float(i) for i in loadcells]
                         self.update_graphdata(loadcells, timestamp, curPos)
+                    # ToDo deal cases
+                    # "limit distance reached" 
+                    # "limit machine force reached"
+                    # "limit experiment force reached"
                     elif line.startswith("Experiment stopped."):
-                        self.set_measurement_state("SUCCESS")
+                        self.set_measurement_state("FAILED", "????.")
                     else:  # Handle other data
                         self.commandLineOutput.append(line)
             except Exception as e:
