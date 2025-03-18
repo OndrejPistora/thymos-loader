@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -1368,6 +1368,13 @@ Setup</string>
                      <widget class="QLabel" name="lMeasurementState">
                       <property name="text">
                        <string>ready</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="lMeasurementState2">
+                      <property name="text">
+                       <string/>
                       </property>
                      </widget>
                     </item>
