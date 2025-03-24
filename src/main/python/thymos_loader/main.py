@@ -140,6 +140,8 @@ class TyhmosControlApp(QMainWindow):
 
     def update_sample_index(self):
         self.SampleIndexManual = True
+        self.buttonStart.setText("START")
+        self.buttonExport.setText("EXPORT")
     
     def ask_clear(self):
         reply = QMessageBox.question(self, 'Message', "Are you sure to clear the graph?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -372,7 +374,9 @@ class TyhmosControlApp(QMainWindow):
         if self.SampleIndexManual:
             self.SampleIndexManual = False
         else:
+            self.numSampleIndex.blockSignals(True)
             self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
+            self.numSampleIndex.blockSignals(False)
             self.flash_background(self.numSampleIndex)
         # start experiment
         dist = self.numExperimentDistance.value()
@@ -470,11 +474,11 @@ class TyhmosControlApp(QMainWindow):
             print(self.graph_pos_data)
             writer.writerow(self.graph_pos_data.columns)
             writer.writerows(self.graph_pos_data.iter_rows())
-            self.lExportState.flash_green()
+            self.flash_background(self.lExportState)
 
         print(f"Data exported successfully to {filepath}")
 
-    def flash_background(self, widget, flash_color="lightgreen", flash_duration=500, fade_duration=1000):
+    def flash_background(self, widget, flash_color="lightgreen", flash_duration=0, fade_duration=1000):
         # Uložíme původní barvu widgetu
         default_color = widget.palette().color(widget.backgroundRole())
         
