@@ -1576,7 +1576,7 @@ Setup</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="lExportState">
+                     <widget class="FlashLabel" name="lExportState">
                       <property name="text">
                        <string>ready</string>
                       </property>
@@ -1726,6 +1726,11 @@ Setup</string>
    <class>ZeroProgressBar</class>
    <extends>QProgressBar</extends>
    <header>zeroprogressbar</header>
+  </customwidget>
+  <customwidget>
+   <class>FlashLabel</class>
+   <extends>QLabel</extends>
+   <header>flashlabel</header>
   </customwidget>
  </customwidgets>
  <tabstops>
