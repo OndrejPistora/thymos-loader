@@ -69,6 +69,8 @@ bump2version major
 
 then push to github
 
+github actions will build installers etc
+
 ## “ThymosLoader.app” is damaged and can’t be opened. You should move it to the Bin
 
 move it from Applications/ ie to Downloads/
@@ -102,3 +104,15 @@ cant install PyQt6-tools so doesnt work for me
 ```sh
 pyqt6-tools designer
 ```
+
+## ToDo list
+
+- view csv
+  - export to MATTES
+- config saved to YAML file
+
+## Wish list
+
+- upload CSVs to cloud?
+- cloud viewer
+- user management
