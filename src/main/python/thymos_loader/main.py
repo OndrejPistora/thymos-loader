@@ -448,7 +448,11 @@ class TyhmosControlApp(QMainWindow):
         filepath = os.path.join(folder, filename)
 
         max_length = max(len(data) for data in pos_data)  # Find longest list
-
+        # ask for overwrite
+        if os.path.exists(filepath):
+            reply = QMessageBox.question(self, 'Message', f"File already exists.\n{filename}\nDo you want to overwrite it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
+                return
         with open(filepath, mode="w", newline="") as file:
             writer = csv.writer(file)
 
