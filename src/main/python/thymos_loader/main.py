@@ -1,8 +1,8 @@
 from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog, QTreeWidgetItem
-from PyQt6.QtCore import QTimer, QDateTime
-from PyQt6.QtGui import QShortcut, QKeySequence
+from PyQt6.QtCore import QTimer, QDateTime, QVariantAnimation, QEasingCurve
+from PyQt6.QtGui import QShortcut, QKeySequence, QColor
 from PyQt6.QtCore import Qt
 from serial import Serial
 from serial.tools import list_ports
@@ -98,10 +98,11 @@ class TyhmosControlApp(QMainWindow):
         self.last_pos = 0
 
         self.currentForce = 0
+        self.currentPos = 0
         self.maxExpForce = 0
 
-        self.firstSampleIndex = True
-        self.numSampleIndex.editingFinished.connect(self.update_sample_index)
+        self.SampleIndexManual = True
+        self.numSampleIndex.valueChanged.connect(self.update_sample_index)
 
 
         # Get the StackedWidget
@@ -123,39 +124,54 @@ class TyhmosControlApp(QMainWindow):
         self.butMeasure.clicked.connect(lambda: self.switch_page("Measure", self.butMeasure))
         self.butView.clicked.connect(lambda: self.switch_page("View", self.butView))
         self.butDebug.clicked.connect(lambda: self.switch_page("Debug", self.butDebug))
+        self.butMachineSetup.setEnabled(False)
+        self.butExperimentSetup.setEnabled(False)
+        self.butMeasure.setEnabled(False)
+        self.butDebug.setEnabled(False)
 
         # Set the initial button highlight
         self.switch_page("Connect", self.butConnect)
         # Add secret keyboard shortcut to trigger dummy_measurement()
         self.secret_shortcut = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_D), self)
         self.secret_shortcut.activated.connect(self.dummy_measurement)
+        # dummy connect
+        self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
+        self.secret_shortcut_connect.activated.connect(self.dummy_connect)
 
     def update_sample_index(self):
-        self.firstSampleIndex = True
+        self.SampleIndexManual = True
     
     def ask_clear(self):
         reply = QMessageBox.question(self, 'Message', "Are you sure to clear the graph?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
+            self.SampleIndexManual = True
             self.clear_graph()
             self.set_measurement_state("CLEAR")
             # do not increment sample index
-            self.firstSampleIndex = True
 
     def clear_graph(self):
         self.graph_pos_data = self.INIT_POS_DATA.clone()
         self.draw_graph(clear=True)
         self.last_pos = 0
+
+    def dummy_connect(self):
+        self.graph_timer.start(50)  # draw graphs 20 Hz
+        self.set_connection_status(True)
+        self.butMachineSetup.setEnabled(True)
+        self.butExperimentSetup.setEnabled(True)
+        self.butMeasure.setEnabled(True)
+        self.butDebug.setEnabled(True)
     
     def dummy_measurement(self):
         self.set_measurement_state("START")
         self.graph_pos_data = pl.DataFrame({
-            "position": [1, 2, 3],
-            "loadcell1": [None, None, None],
-            "loadcell2": [0, 10, 13],
-            "loadcell3": [None, None, None]
+            "position": pl.Series("position", [1, 2, 3], dtype=pl.Float64),
+            "loadcell1": pl.Series("loadcell1", [None, None, None], dtype=pl.Float64),
+            "loadcell2": pl.Series("loadcell2", [0, 10, 13.4], dtype=pl.Float64),
+            "loadcell3": pl.Series("loadcell3", [None, None, None], dtype=pl.Float64),
         })
         self.draw_graph()
-        self.set_measurement_state("SUCCESS")
+        self.set_measurement_state("COMPLETED")
 
     def switch_page(self, page_name, active_button):
         """Switch QStackedWidget page by name."""
@@ -224,17 +240,22 @@ class TyhmosControlApp(QMainWindow):
         """Populate the ComboBox with available serial ports."""
         self.serialPortSelection.clear()
         ports = list_ports.comports()
+        # filter out "/dev/" ports
+        ports = [port for port in ports if not port.device.startswith("/dev/")]
         for port in ports:
             self.serialPortSelection.addItem(port.device)
         if ports:
             self.serialPortSelection.setCurrentIndex(0)
+            self.buttonConnect.setEnabled(True)
+        else:
+            self.serialPortSelection.addItem("No serial ports found. Please connect a device.")
+            self.buttonConnect.setEnabled(False)
 
     def connect_serial(self):
         """Connect to the selected serial port."""
         if self.connected:
             # Disconnect if already connected
             self.serial.close()
-            self.connected = False
             self.serial_read_timer.stop()
             self.graph_timer.stop()
             self.set_connection_status(False)
@@ -243,7 +264,6 @@ class TyhmosControlApp(QMainWindow):
                 selected_port = self.serialPortSelection.currentText()
                 self.serial = Serial(selected_port, baudrate=9600, timeout=1)
                 self.serial.flush()
-                self.connected = True
                 self.serial_read_timer.start(10)  # Start reading every 10ms
                 self.graph_timer.start(50)  # draw graphs 20 Hz
                 self.set_connection_status(True)
@@ -252,6 +272,11 @@ class TyhmosControlApp(QMainWindow):
                 self.send_command("DATAC 1")
                 self.send_command("MC SET SPEEDMM 30")
                 self.send_command("MC SET ACCEL 100")
+                # enable pages which require connection
+                self.butMachineSetup.setEnabled(True)
+                self.butExperimentSetup.setEnabled(True)
+                self.butMeasure.setEnabled(True)
+                self.butDebug.setEnabled(True)
                 # ToDo use watchdog
                 #self.send_command("MISC SET WATCHDOG_ENABLED 1")
             except Exception as e:
@@ -260,6 +285,7 @@ class TyhmosControlApp(QMainWindow):
 
     def set_connection_status(self, status):
         """Update UI based on connection status."""
+        self.connected = status
         if status:
             self.labelConnection.setText("Connected")
             self.buttonConnect.setText("Disconnect")
@@ -268,6 +294,10 @@ class TyhmosControlApp(QMainWindow):
             self.labelConnection.setText("Disconnected")
             self.buttonConnect.setText("Connect")
             self.labelConnection.setStyleSheet("")
+            self.butMachineSetup.setEnabled(False)
+            self.butExperimentSetup.setEnabled(False)
+            self.butMeasure.setEnabled(False)
+            self.butDebug.setEnabled(False)
 
     def send_command(self, command):
         """Send a command to the connected serial device."""
@@ -282,45 +312,48 @@ class TyhmosControlApp(QMainWindow):
             self.show_message(f"Failed to send command: {e}", error=True)
 
     def set_measurement_state(self, transition, comment=""):
-        if transition == "CLEAR":
+        butStartText = "START" if self.SampleIndexManual else "START\nNEXT"
+        self.buttonStart.setText(butStartText)
+        if transition == "CLEAR":  # init
             self.measurement_state = "CLEAR"
             self.lMeasurementState.setText("Ready")
             self.lMeasurementState.setStyleSheet("")
             self.lMeasurementState2.setText("")
             self.buttonStart.setEnabled(True)
             self.buttonStop.setEnabled(False)
-            self.butExport.setEnabled(False)
-            self.butExport.setTest("EXPORT")
-            self.butClear.setEnabled(False)
-        elif transition == "READY":
+            self.buttonExport.setEnabled(False)
+            self.buttonExport.setText("EXPORT")
+            self.buttonClear.setEnabled(False)
+        elif transition == "READY":  # after exported
             self.measurement_state = "READY"
             self.lMeasurementState.setText("Ready")
             self.lMeasurementState.setStyleSheet("")
             self.lMeasurementState2.setText("")
             self.buttonStart.setEnabled(True)
             self.buttonStop.setEnabled(False)
-            self.butExport.setEnabled(True)
-            self.butExport.setTest("EXPORT AGAIN")
-            self.butClear.setEnabled(False)
-        elif transition == "MEASURING":
+            self.buttonExport.setEnabled(True)
+            self.buttonExport.setText("EXPORT\nAGAIN")
+            self.buttonClear.setEnabled(True)
+        elif transition == "MEASURING":  # measuring
             self.measurement_state = "MEASURING"
             self.lMeasurementState.setText("Measuring...")
             self.lMeasurementState.setStyleSheet("background-color: lightgreen;")
             self.lMeasurementState2.setText("Please wait...")
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(True)
-            self.butExport.setEnabled(False)
-            self.butClear.setEnabled(False)
+            self.buttonExport.setEnabled(False)
+            self.buttonClear.setEnabled(False)
             self.lExportState.setText("")
-        elif transition == "SUCCESS":
-            self.measurement_state = "SUCCESS"
-            self.lMeasurementState.setText("Success")
+        elif transition == "COMPLETED":  # measurement completed
+            self.measurement_state = "COMPLETED"
+            self.lMeasurementState.setText("Completed")
             self.lMeasurementState.setStyleSheet("background-color: green;")
             self.lMeasurementState2.setText(comment)
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(False)
-            self.butExport.setEnabled(True)
-            self.butClear.setEnabled(True)
+            self.buttonExport.setEnabled(True)
+            self.buttonExport.setText("EXPORT")
+            self.buttonClear.setEnabled(True)
         elif transition == "FAILED":
             self.measurement_state = "FAILED"
             self.lMeasurementState.setText("Failed")
@@ -328,17 +361,19 @@ class TyhmosControlApp(QMainWindow):
             self.lMeasurementState2.setText(comment)
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(False)
-            self.butExport.setEnabled(True)
-            self.butClear.setEnabled(True)
+            self.buttonExport.setEnabled(True)
+            self.buttonExport.setText("EXPORT")
+            self.buttonClear.setEnabled(True)
 
     def measurementStart(self):
         self.clear_graph()
         self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
         # increment sample index
-        if self.firstSampleIndex:
-            self.firstSampleIndex = False
+        if self.SampleIndexManual:
+            self.SampleIndexManual = False
         else:
             self.numSampleIndex.setValue(self.numSampleIndex.value() + 1)
+            self.flash_background(self.numSampleIndex)
         # start experiment
         dist = self.numExperimentDistance.value()
         speed = self.numExperimentSpeed.value()
@@ -354,7 +389,7 @@ class TyhmosControlApp(QMainWindow):
         # stop checkign timer
         self.exp_stop_timer.stop()
         # set state to stopped
-        self.set_measurement_state("SUCCESS", "Stopped by user.")
+        self.set_measurement_state("COMPLETED", "Stopped by user.")
 
     def exportExperimentData(self):
         if not self.selected_folder:
@@ -385,6 +420,7 @@ class TyhmosControlApp(QMainWindow):
             filename,
             metadata)
         self.lExportState.setText(f"Exported to {filename}")
+        self.set_measurement_state("READY")
 
     def select_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
@@ -434,8 +470,44 @@ class TyhmosControlApp(QMainWindow):
             print(self.graph_pos_data)
             writer.writerow(self.graph_pos_data.columns)
             writer.writerows(self.graph_pos_data.iter_rows())
+            self.lExportState.flash_green()
 
         print(f"Data exported successfully to {filepath}")
+
+    def flash_background(self, widget, flash_color="lightgreen", flash_duration=500, fade_duration=1000):
+        # Uložíme původní barvu widgetu
+        default_color = widget.palette().color(widget.backgroundRole())
+        
+        # Nastavíme flash barvu
+        widget.setStyleSheet(f"background-color: {flash_color};")
+
+        # Počkej a pak spusť vyblednutí
+        def start_fade():
+            start = QColor(flash_color)
+            end = default_color
+
+            anim = QVariantAnimation(
+                startValue=start,
+                endValue=end,
+                duration=fade_duration,
+                easingCurve=QEasingCurve.Type.InOutQuad
+            )
+
+            def update_bg(color):
+                rgba = color.name(QColor.NameFormat.HexArgb)
+                widget.setStyleSheet(f"background-color: {rgba};")
+
+            def clear_style():
+                widget.setStyleSheet("")
+
+            anim.valueChanged.connect(update_bg)
+            anim.finished.connect(clear_style)
+            anim.start()
+
+            # Zabránit garbage collectu
+            widget._flash_anim = anim
+
+        QTimer.singleShot(flash_duration, start_fade)
 
     def send_command_help(self):
         self.send_command("HELP")
@@ -450,7 +522,7 @@ class TyhmosControlApp(QMainWindow):
         if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
             self.send_command("EXP STOP")
             self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
-            self.set_measurement_state("SUCCESS", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
+            self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
             self.exp_stop_timer.stop()
 
     def send_command_experiment_standard(self, dist, speed, max_force):

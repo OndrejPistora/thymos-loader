@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QPushButton
-from PyQt6.QtCore import Qt, QEvent, QPointF
+from PyQt6.QtCore import Qt, QEvent
 from PyQt6.QtGui import QMouseEvent
 
 class TouchButton(QPushButton):
