@@ -2,7 +2,7 @@ from fbs_runtime.application_context.PyQt6 import ApplicationContext
 from PyQt6 import uic
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QWidget, QFileDialog, QTreeWidgetItem
 from PyQt6.QtCore import QTimer, QDateTime, QVariantAnimation, QEasingCurve
-from PyQt6.QtGui import QShortcut, QKeySequence, QColor
+from PyQt6.QtGui import QShortcut, QKeySequence, QColor, QIcon, QTransform, QPixmap
 from PyQt6.QtCore import Qt
 from serial import Serial
 from serial.tools import list_ports
@@ -17,11 +17,12 @@ import sys
 
 # class TyhmosControlApp(QMainWindow, Ui_MainWindow):
 class TyhmosControlApp(QMainWindow):
-    def __init__(self, design_path):
+    def __init__(self, resources):
         super().__init__()
         #print pwd
         print("Current Working Directory:", os.getcwd())
-        uic.loadUi(design_path, self)
+        uic.loadUi(resources["design.ui"], self)
+        self.resources = resources
         self.showMaximized()
 
         self.serial = None  # Placeholder for Serial connection
@@ -71,9 +72,36 @@ class TyhmosControlApp(QMainWindow):
         self.move_timer.timeout.connect(self.manual_movement_command)
         self.moving_dir = ""
 
+        #set button icons
+        # text to nothing
+        self.buttonUp.setText("")
+        self.buttonDown.setText("")
+        self.buttonUp2.setText("")
+        self.buttonDown2.setText("")
+        arrow1 = QPixmap(resources["arrow_1.png"])
+        arrow2 = QPixmap(resources["arrow_2.png"])
+        # scale icons
+        arrow1 = arrow1.scaled(40, 40)
+        arrow2 = arrow2.scaled(50, 50)
+        arrow1 = arrow1.transformed(QTransform().rotate(-90))
+        arrow2 = arrow2.transformed(QTransform().rotate(-90))
+        self.buttonUp.setIcon(QIcon(arrow1))
+        self.buttonUp2.setIcon(QIcon(arrow2))
+        arrow1 = arrow1.transformed(QTransform().rotate(180))
+        arrow2 = arrow2.transformed(QTransform().rotate(180))
+        self.buttonDown.setIcon(QIcon(arrow1))
+        self.buttonDown2.setIcon(QIcon(arrow2))
+        self.buttonUp.setIconSize(arrow1.size())
+        self.buttonDown.setIconSize(arrow1.size())
+        self.buttonUp2.setIconSize(arrow2.size())
+        self.buttonDown2.setIconSize(arrow2.size())
         # Button Press Event
-        self.buttonUp.pressed.connect(lambda: self.start_moving("UP"))
-        self.buttonDown.pressed.connect(lambda: self.start_moving("DOWN"))
+        VEL_MAN_SLOW = 5
+        VEL_MAN_FAST = 50
+        self.buttonUp.pressed.connect(lambda: self.start_moving(VEL_MAN_SLOW))
+        self.buttonDown.pressed.connect(lambda: self.start_moving(-VEL_MAN_SLOW))
+        self.buttonUp2.pressed.connect(lambda: self.start_moving(VEL_MAN_FAST))
+        self.buttonDown2.pressed.connect(lambda: self.start_moving(-VEL_MAN_FAST))
         # Button Release Event
         self.buttonUp.released.connect(lambda: self.stop_moving())
         self.buttonDown.released.connect(lambda: self.stop_moving())
@@ -190,9 +218,11 @@ class TyhmosControlApp(QMainWindow):
             # Highlight the active button with a green tint
             active_button.setStyleSheet("background-color: lightgreen; color: black;")
 
-    def start_moving(self, dir):
+    def start_moving(self, speed):
         """Start sending movement commands for UP or DOWN."""
-        self.moving_dir = dir
+        self.manual_speed = speed
+        self.send_command(f"MC SET SPEEDMM {abs(speed)}")
+        
         # ToDo change dist based on current velocity?
         self.move_timer.start(50)
 
@@ -204,10 +234,8 @@ class TyhmosControlApp(QMainWindow):
     def manual_movement_command(self):
         """Send manual movement commands."""
         DIST = 5
-        if self.moving_dir == "UP":
-            self.send_command(f"MC MOVEBY USER {-DIST}")
-        elif self.moving_dir == "DOWN":
-            self.send_command(f"MC MOVEBY USER {DIST}")
+        vel_sign = 1 if self.manual_speed > 0 else -1
+        self.send_command(f"MC MOVEBY USER {DIST * vel_sign}")
 
     def setup_graph_timebased(self):
         """Initialize the graph for real-time plotting."""
@@ -272,8 +300,8 @@ class TyhmosControlApp(QMainWindow):
                 # send command to start receiving data
                 # INIT COMMANDS
                 self.send_command("DATAC 1")
-                self.send_command("MC SET SPEEDMM 30")
-                self.send_command("MC SET ACCEL 100")
+                self.send_command("MC SET SPEEDMM 5")
+                self.send_command("MC SET ACCEL 1000")
                 # enable pages which require connection
                 self.butMachineSetup.setEnabled(True)
                 self.butExperimentSetup.setEnabled(True)
@@ -825,8 +853,12 @@ class TyhmosControlApp(QMainWindow):
 if __name__ == "__main__":
 
     appctxt = ApplicationContext()
-    design_path = appctxt.get_resource("design.ui")
-    window = TyhmosControlApp(design_path)
+    resources = {
+        "design.ui": appctxt.get_resource("design.ui"),
+        "arrow_1.png": appctxt.get_resource("arrow_1.png"),
+        "arrow_2.png": appctxt.get_resource("arrow_2.png"),
+    }
+    window = TyhmosControlApp(resources)
     appctxt.app.setStyle("fusion")
     # window.resize(250, 150)
     window.show()
