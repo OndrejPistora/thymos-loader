@@ -28,18 +28,29 @@ def read_thymos_csv(file_path):
     data = pl.DataFrame(data_rows, schema=[(col, pl.Float64) for col in header])
     return metadata, data
 
+def filter_only_loadcell2(data):
+    # return only columns: time, position, loadcell2
+    return data.select(["time", "position", "loadcell2"])
+
 def convert_mattes(source_files, target_file):
-    pass
-    
+    for source_file in source_files:
+        # read thymos csv file
+        metadata, data = read_thymos_csv(source_file)
+        # filter only loadcell2
+        data = filter_only_loadcell2(data)
+        print(metadata)
+        print(data)
 
 
 if __name__ == "__main__":
 
-    # source_files = []
-    # target_file = ""
-    # convert_mattes(source_files, target_file)
+    # TEST convert_mattes
+    source_files = ["dev/test_1.csv"]
+    target_file = ""
+    convert_mattes(source_files, target_file)
     
-    metadata, data = read_thymos_csv("dev/test_1.csv")
-    print(metadata)
-    print(data)
+    # # TEST read_thymos_csv
+    # metadata, data = read_thymos_csv("dev/test_1.csv")
+    # print(metadata)
+    # print(data)
     
