@@ -23,11 +23,9 @@ def read_thymos_csv(file_path):
                 reading_state = "data"
             elif reading_state == "data":
                 if len(row) == len(header):
-                    data_rows.append(row)
+                    data_rows.append([float(cell) if cell else 0.0 for cell in row])
 
-    # use Float64 for all columns
-    data = pl.DataFrame(data_rows, schema=header)
-    
+    data = pl.DataFrame(data_rows, schema=[(col, pl.Float64) for col in header])
     return metadata, data
 
 def convert_mattes(source_files, target_file):
