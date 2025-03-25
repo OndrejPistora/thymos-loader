@@ -1,11 +1,9 @@
 import os
 import glob
 import csv
-import polars as pl
-import pandas as pd
 from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment
+import polars as pl
 
 def read_thymos_csv(file_path):
     metadata = {}
@@ -30,15 +28,20 @@ def read_thymos_csv(file_path):
                 if len(row) == len(header):
                     data_rows.append([float(cell) if cell else 0.0 for cell in row])
 
-    data = pl.DataFrame(data_rows, schema=[(col, pl.Float64) for col in header])
+    data = pl.DataFrame(data_rows, schema=[(col, pl.Float64) for col in header], orient="row")
     return metadata, data
 
 def filter_only_loadcell2(data):
-    # return only columns: time, position, loadcell2
-    return data.select(["time", "position", "loadcell2"])
+    # return only columns: time, position, loadcell2 renamed to force
+    return data.select([
+        pl.col("time"),
+        pl.col("position"),
+        pl.col("loadcell2").alias("force")
+    ])
 
-def convert_mattes(csv_folder, output_excel_path):
-    csv_files = sorted(glob.glob(os.path.join(csv_folder, "*.csv")))
+def convert_mattes(csv_files, output_excel_path):
+    # sort by n from "*_n.csv"
+    csv_files = sorted(csv_files, key=lambda x: int(os.path.basename(x).split("_")[-1].split(".")[0]))
 
     wb = Workbook()
     ws = wb.active
@@ -48,38 +51,34 @@ def convert_mattes(csv_folder, output_excel_path):
 
     for index, file_path in enumerate(csv_files, start=1):
         metadata, data = read_thymos_csv(file_path)
+        data = filter_only_loadcell2(data)
+        data = data.with_columns(pl.Series("deformation from F > 1N", [0.0] * len(data)))
 
-        # Převod polars -> pandas pro zápis do Excelu
-        df = data.to_pandas()
-
-        # Napiš nadpis s číslem
         ws.cell(row=1, column=col_offset, value=str(index)).alignment = Alignment(horizontal="center")
+        ws.merge_cells(start_row=1, start_column=col_offset, end_row=1, end_column=col_offset + len(data.columns) - 1)
+        ws.cell(row=2, column=col_offset, value="Measured values from testing machine").alignment = Alignment(horizontal="center")
+        ws.merge_cells(start_row=2, start_column=col_offset, end_row=2, end_column=col_offset + len(data.columns) - 1)
 
-        # Metadata (1 řádek s nadpisem)
-        ws.cell(row=2, column=col_offset, value="Measured values from testing machine")
-        ws.merge_cells(start_row=2, start_column=col_offset, end_row=2, end_column=col_offset + len(df.columns) - 1)
-
-        # Jednotky
+        # Header
+        for i, col in enumerate(data.columns):
+            ws.cell(row=3, column=col_offset + i, value=col)
+        
+        # Units (customizable)
         units = {
-            "Time": "s",
+            "time": "s",
             "position": "mm",
-            "loadcell1": "N",
-            "loadcell2": "N",
-            "loadcell3": "N"
+            "force": "N",
+            "deformation from F > 1N": "mm",
         }
+        for i, col in enumerate(data.columns):
+            ws.cell(row=4, column=col_offset + i, value=units.get(col, ""))
 
-        # Napiš hlavičku
-        for i, col_name in enumerate(df.columns):
-            ws.cell(row=3, column=col_offset + i, value=col_name)
-            ws.cell(row=4, column=col_offset + i, value=units.get(col_name, ""))
+        # Data rows
+        for r_idx, row in enumerate(data.iter_rows(named=True), start=5):
+            for c_idx, col in enumerate(data.columns):
+                ws.cell(row=r_idx, column=col_offset + c_idx, value=row[col])
 
-        # Data
-        for r_idx, row in enumerate(df.itertuples(index=False), start=5):
-            for c_idx, value in enumerate(row):
-                ws.cell(row=r_idx, column=col_offset + c_idx, value=value)
-
-        # Posuň se doprava pro další tabulku
-        col_offset += len(df.columns) + 1  # +1 mezera
+        col_offset += len(data.columns) + 1
 
     wb.save(output_excel_path)
 
@@ -87,8 +86,8 @@ def convert_mattes(csv_folder, output_excel_path):
 if __name__ == "__main__":
 
     # TEST convert_mattes
-    source_files = ["dev/test_1.csv"]
-    target_file = ""
+    source_files = ["dev/test_2.csv", "dev/test_1.csv"]
+    target_file = "dev/output.xlsx"
     convert_mattes(source_files, target_file)
     
     # # TEST read_thymos_csv
