@@ -32,6 +32,7 @@ class TyhmosControlApp(QMainWindow):
         self.serial_buffer = ""
 
         self.INIT_POS_DATA = pl.DataFrame(schema={
+            "time": pl.Float64,
             "position": pl.Float64,
             "loadcell1": pl.Float64,
             "loadcell2": pl.Float64,
@@ -209,6 +210,7 @@ class TyhmosControlApp(QMainWindow):
     def dummy_measurement(self):
         self.set_measurement_state("START")
         self.graph_pos_data = pl.DataFrame({
+            "time": pl.Series("time", [0, 1, 2], dtype=pl.Float64),
             "position": pl.Series("position", [1, 2, 3], dtype=pl.Float64),
             "loadcell1": pl.Series("loadcell1", [None, None, None], dtype=pl.Float64),
             "loadcell2": pl.Series("loadcell2", [0, 10, 13.4], dtype=pl.Float64),
@@ -503,7 +505,7 @@ class TyhmosControlApp(QMainWindow):
 
             # Write data with polars
             # Keep only the columns that are enabled
-            enabled_cols = ["position"]
+            enabled_cols = ["time", "position"]
             if self.lcEnable1.isChecked():
                 enabled_cols.append("loadcell1")
             if self.lcEnable2.isChecked():
@@ -647,6 +649,7 @@ class TyhmosControlApp(QMainWindow):
 
             if curPos != self.last_pos and self.measurement_state == "measuring":
                 new_row = pl.DataFrame({
+                    "time": [timestamp],
                     "position": [curPos],
                     "loadcell1": [loadcells[0]],
                     "loadcell2": [loadcells[1]],
@@ -655,7 +658,7 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_pos_data = pl.concat([self.graph_pos_data, new_row])
             self.last_pos = curPos
 
-            # bargraphhs
+            # bargraphs
             self.loadcell1.setValue(int(loadcells[0]))
             self.loadcell2.setValue(int(loadcells[1]))
             self.loadcell3.setValue(int(loadcells[2]))
