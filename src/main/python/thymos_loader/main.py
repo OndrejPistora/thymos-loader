@@ -209,6 +209,7 @@ class TyhmosControlApp(QMainWindow):
     
     def dummy_measurement(self):
         self.set_measurement_state("START")
+        # dummy data
         self.graph_pos_data = pl.DataFrame({
             "time": pl.Series("time", [0, 1, 2], dtype=pl.Float64),
             "position": pl.Series("position", [1, 2, 3], dtype=pl.Float64),
@@ -216,6 +217,9 @@ class TyhmosControlApp(QMainWindow):
             "loadcell2": pl.Series("loadcell2", [0, 10, 13.4], dtype=pl.Float64),
             "loadcell3": pl.Series("loadcell3", [None, None, None], dtype=pl.Float64),
         })
+        # dummy metadata
+        self.maxExpForce = max(self.graph_pos_data["loadcell1"].max() , self.graph_pos_data["loadcell2"].max(), self.graph_pos_data["loadcell3"].max())
+        # finish
         self.draw_graph()
         self.set_measurement_state("COMPLETED")
 

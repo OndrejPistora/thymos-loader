@@ -1,31 +1,34 @@
-from openpyxl import workbook
+# from openpyxl import workbook
 import csv 
 import polars as pl
 
 def read_thymos_csv(file_path):
     metadata = {}
-    # data is empty polars table
-    data = 
+    data_rows = []
+    header = None
     reading_state = "metadata"
 
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', newline='') as f:
         reader = csv.reader(f)
         for row in reader:
-            # read metadata rows one by one
             if reading_state == "metadata":
                 if len(row) == 0:
-                    reading_metadata = "blank"
-                else:
+                    reading_state = "header"
+                elif len(row) >= 2:
                     metadata[row[0]] = row[1]
-            if reading_state == "blank":
-                reading_state = "header"
-            if reading_state == "header":
-                # prepare polars table
+                elif len(row) == 1:
+                    metadata[row[0]] = None
+            elif reading_state == "header":
                 header = row
                 reading_state = "data"
-            if reading_state == "data":
-    return metadata, data
+            elif reading_state == "data":
+                if len(row) == len(header):
+                    data_rows.append(row)
 
+    # use Float64 for all columns
+    data = pl.DataFrame(data_rows, schema=header)
+    
+    return metadata, data
 
 def convert_mattes(source_files, target_file):
     pass

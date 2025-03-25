@@ -6,7 +6,7 @@ Date,2025_03_25 16:59:57
 Description,
 Notes,
 Speed,0.0
-Max force,0
+Max force,13.4
 
 time,position,loadcell1,loadcell2,loadcell3
 0.0,1.0,0.0,0.0,0.0
