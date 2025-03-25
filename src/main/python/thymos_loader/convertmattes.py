@@ -1,6 +1,11 @@
-# from openpyxl import workbook
-import csv 
+import os
+import glob
+import csv
 import polars as pl
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Alignment
 
 def read_thymos_csv(file_path):
     metadata = {}
@@ -32,14 +37,51 @@ def filter_only_loadcell2(data):
     # return only columns: time, position, loadcell2
     return data.select(["time", "position", "loadcell2"])
 
-def convert_mattes(source_files, target_file):
-    for source_file in source_files:
-        # read thymos csv file
-        metadata, data = read_thymos_csv(source_file)
-        # filter only loadcell2
-        data = filter_only_loadcell2(data)
-        print(metadata)
-        print(data)
+def convert_mattes(csv_folder, output_excel_path):
+    csv_files = sorted(glob.glob(os.path.join(csv_folder, "*.csv")))
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Measurements"
+
+    col_offset = 1
+
+    for index, file_path in enumerate(csv_files, start=1):
+        metadata, data = read_thymos_csv(file_path)
+
+        # Převod polars -> pandas pro zápis do Excelu
+        df = data.to_pandas()
+
+        # Napiš nadpis s číslem
+        ws.cell(row=1, column=col_offset, value=str(index)).alignment = Alignment(horizontal="center")
+
+        # Metadata (1 řádek s nadpisem)
+        ws.cell(row=2, column=col_offset, value="Measured values from testing machine")
+        ws.merge_cells(start_row=2, start_column=col_offset, end_row=2, end_column=col_offset + len(df.columns) - 1)
+
+        # Jednotky
+        units = {
+            "Time": "s",
+            "position": "mm",
+            "loadcell1": "N",
+            "loadcell2": "N",
+            "loadcell3": "N"
+        }
+
+        # Napiš hlavičku
+        for i, col_name in enumerate(df.columns):
+            ws.cell(row=3, column=col_offset + i, value=col_name)
+            ws.cell(row=4, column=col_offset + i, value=units.get(col_name, ""))
+
+        # Data
+        for r_idx, row in enumerate(df.itertuples(index=False), start=5):
+            for c_idx, value in enumerate(row):
+                ws.cell(row=r_idx, column=col_offset + c_idx, value=value)
+
+        # Posuň se doprava pro další tabulku
+        col_offset += len(df.columns) + 1  # +1 mezera
+
+    wb.save(output_excel_path)
 
 
 if __name__ == "__main__":
