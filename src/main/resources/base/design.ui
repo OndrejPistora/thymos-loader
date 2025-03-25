@@ -1781,9 +1781,9 @@ Setup</string>
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="buttonExportMattes">
+                     <widget class="QPushButton" name="buttonConvertMattes">
                       <property name="text">
-                       <string>Export to MATTES</string>
+                       <string>Convert to MATTES</string>
                       </property>
                      </widget>
                     </item>

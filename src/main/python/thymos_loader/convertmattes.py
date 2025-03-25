@@ -1,5 +1,4 @@
 import os
-import glob
 import csv
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
@@ -85,15 +84,30 @@ def convert_mattes(csv_files, output_excel_path):
 
     headers = [
         "Code", "Method", "W", "Number",
-        "hₓ height (mm)", "lₓ length (mm)", "wₓ width (mm)", "mₓ (g)",
-        "h₀ height (mm)", "l₀ length (mm)", "w₀ width (mm)", "m₀ (g)",
-        "lₒ (mm)"
+        "Dimensions, weight, before drying", "", "", "",
+        "Dimensions, weight, after drying", "", "", "",
+        "lo (mm)"
+    ]
+    headers2 = [
+        "", "", "", "",
+        "h_w", "l_w", "w_w", "m_w",
+        "h_0", "l_0", "w_0", "m_0",
+        ""
+    ]
+    headers3 = [
+        "", "", "", "",
+        "height (mm)", "length (mm)", "width (mm)", "mass (g)",
+        "height (mm)", "length (mm)", "width (mm)", "mass (g)",
+        ""
     ]
     ws2.append(headers)
-    # append two empty rows
-    ws2.append([""] * len(headers))
-    ws2.append([""] * len(headers))
-    ws1.merge_cells(start_row=1, start_column=1, end_row=3, end_column=3)
+    ws2.append(headers2)
+    ws2.append(headers3)
+    for i in range(1, 5):
+        ws2.merge_cells(start_row=1, start_column=i, end_row=3, end_column=i)  # "Code", "Method", "W", "Number",
+    ws2.merge_cells(start_row=1, start_column=13, end_row=3, end_column=13)  # Lo
+    ws2.merge_cells(start_row=1, start_column=5, end_row=1, end_column=8)  # before drying
+    ws2.merge_cells(start_row=1, start_column=9, end_row=1, end_column=12)  # after drying
 
 
     for i, filepath in enumerate(csv_files):

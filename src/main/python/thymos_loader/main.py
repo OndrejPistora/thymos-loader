@@ -6,6 +6,7 @@ from PyQt6.QtGui import QShortcut, QKeySequence, QColor, QIcon, QTransform, QPix
 from PyQt6.QtCore import Qt
 from serial import Serial
 from serial.tools import list_ports
+from convertmattes import convert_mattes
 import pyqtgraph as pg
 import csv
 import os
@@ -111,6 +112,8 @@ class TyhmosControlApp(QMainWindow):
 
         self.buttonSelectFolder.clicked.connect(self.select_folder)
         self.buttonSelectFolder2.clicked.connect(self.select_folder)
+
+        self.buttonConvertMattes.clicked.connect(self.convert_mattes_wrapper)
 
         # Set default label for connection status
         self.labelConnection.setText("Not Connected")
@@ -528,6 +531,26 @@ class TyhmosControlApp(QMainWindow):
 
         print(f"Data exported successfully to {filepath}")
 
+    def convert_mattes_wrapper(self):
+        # convert all selected csv files to MATTES
+        if not self.selected_folder:
+            self.show_message("Please select a folder first.", error=True)
+            return
+        csv_files = []
+        for item in self.wfTree.selectedItems():
+            item_path = item.data(0, Qt.ItemDataRole.UserRole)
+            if os.path.isfile(item_path):
+                csv_files.append(item_path)
+        # generate output filename
+        output_excel_path = os.path.join(self.selected_folder, f"{self.inputExperimentTitle.text()}_mattes.xlsx")
+        
+        convert_mattes(csv_files, output_excel_path)
+        self.flash_background(self.buttonConvertMattes)
+
+        #refresh tree
+        self.populate_wfTree()
+
+
     def flash_background(self, widget, flash_color="lightgreen", flash_duration=0, fade_duration=1000):
         # Uložíme původní barvu widgetu
         default_color = widget.palette().color(widget.backgroundRole())
@@ -736,7 +759,7 @@ class TyhmosControlApp(QMainWindow):
                     tree_item = QTreeWidgetItem(parent, [item])
                     tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
                     add_items(tree_item, item_path)
-                elif item.endswith(".csv"):  # Only include CSV files
+                elif item.endswith(".csv") or item.endswith(".xlsx"): # Only include CSV and xlsx files
                     tree_item = QTreeWidgetItem(parent, [item])
                     tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
 
