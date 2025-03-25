@@ -178,7 +178,6 @@ class TyhmosControlApp(QMainWindow):
         """Update the button highlight when the page changes."""
         current_page = self.stackedWidget.currentWidget()
         page_name = current_page.objectName()
-        print(current_page)
         if page_name == "ExperimentSetup":
             self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
         elif page_name == "View":
@@ -497,7 +496,7 @@ class TyhmosControlApp(QMainWindow):
         filepath = os.path.join(folder, filename)
 
         max_length = max(len(data) for data in pos_data)  # Find longest list
-        # ask for overwrite
+        # check for overwrite
         if os.path.exists(filepath):
             reply = QMessageBox.question(self, 'Message', f"File already exists.\n{filename}\nDo you want to overwrite it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.No:
@@ -536,18 +535,22 @@ class TyhmosControlApp(QMainWindow):
         if not self.selected_folder:
             self.show_message("Please select a folder first.", error=True)
             return
+        # check for overwrite
+        output_excel_path = os.path.join(self.selected_folder, f"{self.inputExperimentTitle.text()}_mattes.xlsx")
+        if os.path.exists(output_excel_path):
+            reply = QMessageBox.question(self, 'Message', f"File already exists.\n{output_excel_path}\nDo you want to overwrite it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
+                return
+        # generate input CSV files
         csv_files = []
         for item in self.wfTree.selectedItems():
             item_path = item.data(0, Qt.ItemDataRole.UserRole)
             if os.path.isfile(item_path):
                 csv_files.append(item_path)
-        # generate output filename
-        output_excel_path = os.path.join(self.selected_folder, f"{self.inputExperimentTitle.text()}_mattes.xlsx")
-        
+        # do the conversion
         convert_mattes(csv_files, output_excel_path)
+        # update ui
         self.flash_background(self.buttonConvertMattes)
-
-        #refresh tree
         self.populate_wfTree()
 
 
