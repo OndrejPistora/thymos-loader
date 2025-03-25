@@ -108,7 +108,8 @@ class TyhmosControlApp(QMainWindow):
 
         self.butRefresh.clicked.connect(self.populate_serial_ports)
 
-        self.butOutSelectFolder.clicked.connect(self.select_folder)
+        self.buttonSelectFolder.clicked.connect(self.select_folder)
+        self.buttonSelectFolder2.clicked.connect(self.select_folder)
 
         # Set default label for connection status
         self.labelConnection.setText("Not Connected")
@@ -145,6 +146,9 @@ class TyhmosControlApp(QMainWindow):
             self.butDebug     
         ]
 
+        # check page changed
+        self.stackedWidget.currentChanged.connect(self.pageChanged)
+
         # Connect buttons to switch pages by name
         self.butConnect.clicked.connect(lambda: self.switch_page("Connect", self.butConnect))
         self.butMachineSetup.clicked.connect(lambda: self.switch_page("MachineSetup", self.butMachineSetup))
@@ -165,6 +169,16 @@ class TyhmosControlApp(QMainWindow):
         # dummy connect
         self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
         self.secret_shortcut_connect.activated.connect(self.dummy_connect)
+
+    def pageChanged(self):
+        """Update the button highlight when the page changes."""
+        current_page = self.stackedWidget.currentWidget()
+        page_name = current_page.objectName()
+        print(current_page)
+        if page_name == "ExperimentSetup":
+            self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
+        elif page_name == "View":
+            self.populate_wfTree()
 
     def update_sample_index(self):
         self.SampleIndexManual = True
@@ -208,8 +222,6 @@ class TyhmosControlApp(QMainWindow):
         target_page = self.findChild(QWidget, page_name)
         if target_page:
             self.stackedWidget.setCurrentWidget(target_page)
-            if page_name == "ExperimentSetup":
-                self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
 
             # Reset all button colors
             for button in self.nav_buttons:

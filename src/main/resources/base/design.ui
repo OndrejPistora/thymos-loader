@@ -802,7 +802,7 @@ Setup</string>
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="butOutSelectFolder">
+                  <widget class="QPushButton" name="buttonSelectFolder">
                    <property name="maximumSize">
                     <size>
                      <width>200</width>
@@ -1679,6 +1679,16 @@ Setup</string>
                   <widget class="QPushButton" name="butRefreshTree">
                    <property name="text">
                     <string>Refresh</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="buttonSelectFolder2">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select working folder in which the experiment csv files will be saved. In &amp;quot;View&amp;quot; page you can also see the graphs from these files. This will overwrite the folder in &amp;quot;Experiment Setup&amp;quot; page.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Select folder</string>
                    </property>
                   </widget>
                  </item>
