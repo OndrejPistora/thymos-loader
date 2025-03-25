@@ -44,8 +44,8 @@ def convert_mattes(csv_files, output_excel_path):
     csv_files = sorted(csv_files, key=lambda x: int(os.path.basename(x).split("_")[-1].split(".")[0]))
 
     wb = Workbook()
-    ws = wb.active
-    ws.title = "Measurements"
+    ws1 = wb.active
+    ws1.title = "Measurements"
 
     col_offset = 1
 
@@ -54,14 +54,14 @@ def convert_mattes(csv_files, output_excel_path):
         data = filter_only_loadcell2(data)
         data = data.with_columns(pl.Series("deformation from F > 1N", [0.0] * len(data)))
 
-        ws.cell(row=1, column=col_offset, value=str(index)).alignment = Alignment(horizontal="center")
-        ws.merge_cells(start_row=1, start_column=col_offset, end_row=1, end_column=col_offset + len(data.columns) - 1)
-        ws.cell(row=2, column=col_offset, value="Measured values from testing machine").alignment = Alignment(horizontal="center")
-        ws.merge_cells(start_row=2, start_column=col_offset, end_row=2, end_column=col_offset + len(data.columns) - 1)
+        ws1.cell(row=1, column=col_offset, value=str(index)).alignment = Alignment(horizontal="center")
+        ws1.merge_cells(start_row=1, start_column=col_offset, end_row=1, end_column=col_offset + len(data.columns) - 1)
+        ws1.cell(row=2, column=col_offset, value="Measured values from testing machine").alignment = Alignment(horizontal="center")
+        ws1.merge_cells(start_row=2, start_column=col_offset, end_row=2, end_column=col_offset + len(data.columns) - 1)
 
         # Header
         for i, col in enumerate(data.columns):
-            ws.cell(row=3, column=col_offset + i, value=col)
+            ws1.cell(row=3, column=col_offset + i, value=col)
         
         # Units (customizable)
         units = {
@@ -71,14 +71,43 @@ def convert_mattes(csv_files, output_excel_path):
             "deformation from F > 1N": "mm",
         }
         for i, col in enumerate(data.columns):
-            ws.cell(row=4, column=col_offset + i, value=units.get(col, ""))
+            ws1.cell(row=4, column=col_offset + i, value=units.get(col, ""))
 
         # Data rows
         for r_idx, row in enumerate(data.iter_rows(named=True), start=5):
             for c_idx, col in enumerate(data.columns):
-                ws.cell(row=r_idx, column=col_offset + c_idx, value=row[col])
+                ws1.cell(row=r_idx, column=col_offset + c_idx, value=row[col])
 
         col_offset += len(data.columns) + 1
+
+    # Add second sheet
+    ws2 = wb.create_sheet(title="objects")
+
+    headers = [
+        "Code", "Method", "W", "Number",
+        "hₓ height (mm)", "lₓ length (mm)", "wₓ width (mm)", "mₓ (g)",
+        "h₀ height (mm)", "l₀ length (mm)", "w₀ width (mm)", "m₀ (g)",
+        "lₒ (mm)"
+    ]
+    ws2.append(headers)
+    # append two empty rows
+    ws2.append([""] * len(headers))
+    ws2.append([""] * len(headers))
+    ws1.merge_cells(start_row=1, start_column=1, end_row=3, end_column=3)
+
+
+    for i, filepath in enumerate(csv_files):
+        filename = os.path.basename(filepath)
+        row = [
+            filename,
+            3,  # Method
+            0,  # W
+            i + 1,  # Number
+            "", "", "", "",  # before drying
+            "", "", "", "",  # after drying
+            ""  # length
+        ]
+        ws2.append(row)
 
     wb.save(output_excel_path)
 
