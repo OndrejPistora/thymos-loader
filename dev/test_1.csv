@@ -1,0 +1,14 @@
+Title,test
+Sample Index,1
+Sample,
+Author,
+Date,2025_03_25 16:59:57
+Description,
+Notes,
+Speed,0.0
+Max force,0
+
+time,position,loadcell1,loadcell2,loadcell3
+0.0,1.0,0.0,0.0,0.0
+1.0,2.0,0.0,10.0,0.0
+2.0,3.0,0.0,13.4,0.0
