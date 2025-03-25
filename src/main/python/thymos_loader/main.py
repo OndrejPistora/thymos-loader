@@ -47,7 +47,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonStart.clicked.connect(self.measurementStart)
         self.buttonStop.clicked.connect(self.measurementStop)
         self.buttonClear.clicked.connect(self.ask_clear)
-        self.buttonExport.clicked.connect(self.exportExperimentData)
+        self.buttonSave.clicked.connect(self.saveExperimentData)
 
 
         self.buttonSend.clicked.connect(self.send_command_line)
@@ -186,7 +186,7 @@ class TyhmosControlApp(QMainWindow):
     def update_sample_index(self):
         self.SampleIndexManual = True
         self.buttonStart.setText("START")
-        self.buttonExport.setText("EXPORT")
+        self.buttonSave.setText("SAVE")
     
     def ask_clear(self):
         reply = QMessageBox.question(self, 'Message', "Are you sure to clear the graph?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
@@ -371,18 +371,18 @@ class TyhmosControlApp(QMainWindow):
             self.lMeasurementState2.setText("")
             self.buttonStart.setEnabled(True)
             self.buttonStop.setEnabled(False)
-            self.buttonExport.setEnabled(False)
-            self.buttonExport.setText("EXPORT")
+            self.buttonSave.setEnabled(False)
+            self.buttonSave.setText("SAVE")
             self.buttonClear.setEnabled(False)
-        elif transition == "READY":  # after exported
+        elif transition == "READY":  # after saved
             self.measurement_state = "READY"
             self.lMeasurementState.setText("Ready")
             self.lMeasurementState.setStyleSheet("")
             self.lMeasurementState2.setText("")
             self.buttonStart.setEnabled(True)
             self.buttonStop.setEnabled(False)
-            self.buttonExport.setEnabled(True)
-            self.buttonExport.setText("EXPORT\nAGAIN")
+            self.buttonSave.setEnabled(True)
+            self.buttonSave.setText("SAVE\nAGAIN")
             self.buttonClear.setEnabled(True)
         elif transition == "MEASURING":  # measuring
             self.measurement_state = "MEASURING"
@@ -391,9 +391,9 @@ class TyhmosControlApp(QMainWindow):
             self.lMeasurementState2.setText("Please wait...")
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(True)
-            self.buttonExport.setEnabled(False)
+            self.buttonSave.setEnabled(False)
             self.buttonClear.setEnabled(False)
-            self.lExportState.setText("")
+            self.lSaveState.setText("")
         elif transition == "COMPLETED":  # measurement completed
             self.measurement_state = "COMPLETED"
             self.lMeasurementState.setText("Completed")
@@ -401,18 +401,18 @@ class TyhmosControlApp(QMainWindow):
             self.lMeasurementState2.setText(comment)
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(False)
-            self.buttonExport.setEnabled(True)
-            self.buttonExport.setText("EXPORT")
+            self.buttonSave.setEnabled(True)
+            self.buttonSave.setText("SAVE")
             self.buttonClear.setEnabled(True)
-        elif transition == "FAILED":
+        elif transition == "FAILED":  # measurement failed on some limit
             self.measurement_state = "FAILED"
             self.lMeasurementState.setText("Failed")
             self.lMeasurementState.setStyleSheet("background-color: lightred;")
             self.lMeasurementState2.setText(comment)
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(False)
-            self.buttonExport.setEnabled(True)
-            self.buttonExport.setText("EXPORT")
+            self.buttonSave.setEnabled(True)
+            self.buttonSave.setText("SAVE")
             self.buttonClear.setEnabled(True)
 
     def measurementStart(self):
@@ -443,7 +443,7 @@ class TyhmosControlApp(QMainWindow):
         # set state to stopped
         self.set_measurement_state("COMPLETED", "Stopped by user.")
 
-    def exportExperimentData(self):
+    def saveExperimentData(self):
         if not self.selected_folder:
             self.select_folder()
         if not self.inputExperimentTitle.text():
@@ -453,7 +453,7 @@ class TyhmosControlApp(QMainWindow):
             # focus on title input
             self.inputExperimentTitle.setFocus()
             return
-        #Export data to CSV
+        #Save data to CSV
         metadata = {
             "Title": self.inputExperimentTitle.text(),
             "Sample Index": self.numSampleIndex.value(),
@@ -466,12 +466,12 @@ class TyhmosControlApp(QMainWindow):
             "Max force": self.maxExpForce
             }
         filename = f"{self.inputExperimentTitle.text()}_{self.numSampleIndex.value()}.csv"
-        self.export_to_csv(
+        self.save_to_csv(
             self.graph_pos_data,
             self.selected_folder,
             filename,
             metadata)
-        self.lExportState.setText(f"Exported to {filename}")
+        self.lSaveState.setText(f"Saved to {filename}")
         self.set_measurement_state("READY")
 
     def select_folder(self):
@@ -480,9 +480,9 @@ class TyhmosControlApp(QMainWindow):
             self.selected_folder = folder
             self.labOutFolder.setText(folder)
 
-    def export_to_csv(self, pos_data, folder, filename, metadata):
+    def save_to_csv(self, pos_data, folder, filename, metadata):
         """
-        Exports position-based data for load cells to a CSV file.
+        Saves position-based data for load cells to a CSV file.
 
         :param pos_data: List of lists containing (position, value) tuples.
         :param folder: The folder where the CSV file will be saved.
@@ -526,9 +526,9 @@ class TyhmosControlApp(QMainWindow):
             print(self.graph_pos_data)
             writer.writerow(self.graph_pos_data.columns)
             writer.writerows(self.graph_pos_data.iter_rows())
-            self.flash_background(self.lExportState)
+            self.flash_background(self.lSaveState)
 
-        print(f"Data exported successfully to {filepath}")
+        print(f"Data saved successfully to {filepath}")
 
     def convert_mattes_wrapper(self):
         # convert all selected csv files to MATTES

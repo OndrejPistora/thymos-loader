@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -1561,7 +1561,7 @@ Setup</string>
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="buttonExport">
+                     <widget class="QPushButton" name="buttonSave">
                       <property name="enabled">
                        <bool>false</bool>
                       </property>
@@ -1584,7 +1584,7 @@ Setup</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>EXPORT</string>
+                       <string>SAVE</string>
                       </property>
                      </widget>
                     </item>
@@ -1620,7 +1620,7 @@ Setup</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="lExportState">
+                  <widget class="QLabel" name="lSaveState">
                    <property name="text">
                     <string>ready</string>
                    </property>
@@ -1782,6 +1782,9 @@ Setup</string>
                     </property>
                     <item>
                      <widget class="QPushButton" name="buttonConvertMattes">
+                      <property name="toolTip">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts selected CSV files to MATTES format. Loadcell 2 will be used as &amp;quot;Force&amp;quot;. Title of the experiment in &amp;quot;Experiment Setup&amp;quot; page will be used as name for the file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
                       <property name="text">
                        <string>Convert to MATTES</string>
                       </property>
@@ -1898,7 +1901,7 @@ Setup</string>
   <tabstop>numSampleIndex</tabstop>
   <tabstop>inputExperimentSample</tabstop>
   <tabstop>inputExperimentNotes</tabstop>
-  <tabstop>buttonExport</tabstop>
+  <tabstop>buttonSave</tabstop>
   <tabstop>buttonClear</tabstop>
   <tabstop>buttonSend</tabstop>
   <tabstop>commandLineEdit</tabstop>
