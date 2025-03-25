@@ -1167,7 +1167,7 @@ Setup</string>
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A camera can be connected to the main board via a jack-jack cable. The loading machine will trigger the camera to take photos during an experiment. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Photos</string>
+                    <string>Camera</string>
                    </property>
                   </widget>
                  </item>

@@ -49,7 +49,8 @@ class TyhmosControlApp(QMainWindow):
         self.graph_timer.timeout.connect(self.draw_graph)
         self.move_timer = QTimer()
         self.move_timer.timeout.connect(self.manual_movement_command)
-        self.moving_dir = ""
+        self.manual_speed = 0
+        
 
         # Setup graph for real-time plotting
         self.setup_graph_timebased()
@@ -426,6 +427,8 @@ class TyhmosControlApp(QMainWindow):
         speed = self.numExperimentSpeed.value()
         max_force = self.numExperimentSafeForce.value()
         self.send_command_experiment_standard(dist, speed, max_force)
+        # send command to start camera taking photos
+        # ToDo
         self.set_measurement_state("MEASURING")
 
     def measurementStop(self):
