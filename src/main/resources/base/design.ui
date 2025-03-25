@@ -809,6 +809,9 @@ Setup</string>
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select working folder in which the experiment csv files will be saved. In &amp;quot;View&amp;quot; page you can also see the graphs from these files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
                    <property name="text">
                     <string>Select folder</string>
                    </property>
@@ -1283,6 +1286,9 @@ Setup</string>
                       <layout class="QHBoxLayout" name="horizontalLayout_2">
                        <item>
                         <widget class="QLabel" name="label_10">
+                         <property name="toolTip">
+                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of the sample. In one experiment setup you can measure many samples. You can set the number manually and start a measurement. After that the number will increase automatically with each measurement.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                         </property>
                          <property name="text">
                           <string>Sample index</string>
                          </property>
@@ -1295,6 +1301,9 @@ Setup</string>
                            <width>80</width>
                            <height>0</height>
                           </size>
+                         </property>
+                         <property name="toolTip">
+                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of the sample. In one experiment setup you can measure many samples. You can set the number manually and start a measurement. After that the number will increase automatically with each measurement.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                          </property>
                          <property name="maximum">
                           <number>9999</number>
@@ -1318,6 +1327,9 @@ Setup</string>
                            <width>150</width>
                            <height>0</height>
                           </size>
+                         </property>
+                         <property name="toolTip">
+                          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Name of the current sample. In one experiment setup you can measure many samples. You can leave it empty if you want.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                          </property>
                         </widget>
                        </item>
