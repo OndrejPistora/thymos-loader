@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>919</width>
-    <height>750</height>
+    <width>898</width>
+    <height>754</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -525,7 +525,7 @@ Setup</string>
                  </size>
                 </property>
                 <property name="text">
-                 <string>TextLabel</string>
+                 <string>Not connected</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -745,6 +745,9 @@ Setup</string>
                   <width>100</width>
                   <height>100</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Homes the machine.&lt;/p&gt;&lt;p&gt;The machine will move up to touch the endstop sensors.&lt;/p&gt;&lt;p&gt;The crossbar will be leveled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
                  <string>Home</string>
@@ -1759,8 +1762,14 @@ Setup</string>
                    </property>
                   </widget>
                  </item>
-                 <item alignment="Qt::AlignRight">
+                 <item>
                   <widget class="QFrame" name="graphMenu">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="frameShape">
                     <enum>QFrame::NoFrame</enum>
                    </property>
@@ -1780,6 +1789,40 @@ Setup</string>
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
+                    <item>
+                     <widget class="QPushButton" name="buttonViewAll">
+                      <property name="text">
+                       <string>View all</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="buttonPanMode">
+                      <property name="text">
+                       <string>Pan mode</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="buttonZoomMode">
+                      <property name="text">
+                       <string>Zoom mode</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_4">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
                     <item>
                      <widget class="QPushButton" name="buttonConvertMattes">
                       <property name="toolTip">

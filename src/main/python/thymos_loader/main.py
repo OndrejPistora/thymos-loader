@@ -28,9 +28,11 @@ class TyhmosControlApp(QMainWindow):
 
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
+        self.serial_buffer = ""
 
         self.selected_folder = None
-        self.serial_buffer = ""
+
+        self.measurement_state = "ready"
 
         self.INIT_POS_DATA = pl.DataFrame(schema={
             "time": pl.Float64,
@@ -39,31 +41,6 @@ class TyhmosControlApp(QMainWindow):
             "loadcell2": pl.Float64,
             "loadcell3": pl.Float64
         })
-        # Populate the ComboBox with available serial ports 
-        self.populate_serial_ports()
-
-        # Connect buttons to their respective actions
-        self.buttonConnect.clicked.connect(self.connect_serial)
-        self.buttonStart.clicked.connect(self.measurementStart)
-        self.buttonStop.clicked.connect(self.measurementStop)
-        self.buttonClear.clicked.connect(self.ask_clear)
-        self.buttonSave.clicked.connect(self.saveExperimentData)
-
-
-        self.buttonSend.clicked.connect(self.send_command_line)
-        self.buttonHome.clicked.connect(self.send_command_home)
-        self.buttonHome.setToolTip('Homes the machine.\nThe machine will move up to touch the endstop sensors.\nThe crossbar will be leveled.')
-        self.buttonTare1.clicked.connect(lambda: self.send_command_tare(1))
-        self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
-        self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
-        self.butRefreshTree.clicked.connect(self.populate_wfTree)
-        self.wfTree.itemSelectionChanged.connect(self.handle_tree_selection)
-
-        # Trigger sendButton when Enter is pressed in commandLineEdit
-        self.commandLineEdit.returnPressed.connect(self.send_command_line)
-        self.buttonHelp.clicked.connect(self.send_command_help)  # Connect buttonHelp
-
-        # self.testSuccess.clicked.connect(self.dummy_measurement)
 
         # Timer to read data from the serial port periodically
         self.serial_read_timer = QTimer()
@@ -74,6 +51,98 @@ class TyhmosControlApp(QMainWindow):
         self.move_timer.timeout.connect(self.manual_movement_command)
         self.moving_dir = ""
 
+        # Setup graph for real-time plotting
+        self.setup_graph_timebased()
+        self.setup_graph_positionbased()
+
+        # Placeholder for graph data
+        self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
+        # Stores position-based data for 3 loadcells
+        self.graph_pos_data = self.INIT_POS_DATA.clone()
+        self.last_pos = 0
+
+        self.currentForce = 0
+        self.currentPos = 0
+        self.maxExpForce = 0
+
+        self.SampleIndexManual = True
+        self.numSampleIndex.valueChanged.connect(self.update_sample_index)
+        
+        # CONNECT page
+        self.buttonConnect.clicked.connect(self.connect_serial)
+        self.butRefresh.clicked.connect(self.populate_serial_ports)
+
+        # MACHINE SETUP page
+        self.buttonTare1.clicked.connect(lambda: self.send_command_tare(1))
+        self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
+        self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
+        self.buttonHome.clicked.connect(self.send_command_home)
+
+        # EXPERIMENT SETUP page
+        self.buttonSelectFolder.clicked.connect(self.select_folder)
+        # manual movement buttons
+        self.set_icons_manual()
+        VEL_MAN_SLOW = 5
+        VEL_MAN_FAST = 50
+        self.buttonUp.pressed.connect(lambda: self.start_moving(VEL_MAN_SLOW))
+        self.buttonDown.pressed.connect(lambda: self.start_moving(-VEL_MAN_SLOW))
+        self.buttonUp2.pressed.connect(lambda: self.start_moving(VEL_MAN_FAST))
+        self.buttonDown2.pressed.connect(lambda: self.start_moving(-VEL_MAN_FAST))
+        # Button Release Event
+        self.buttonUp.released.connect(lambda: self.stop_moving())
+        self.buttonUp2.released.connect(lambda: self.stop_moving())
+        self.buttonDown.released.connect(lambda: self.stop_moving())
+        self.buttonDown2.released.connect(lambda: self.stop_moving())
+
+        # MEASURE page
+        self.buttonStart.clicked.connect(self.measurementStart)
+        self.buttonStop.clicked.connect(self.measurementStop)
+        self.buttonSave.clicked.connect(self.saveExperimentData)
+        self.buttonClear.clicked.connect(self.ask_clear)
+
+        # VIEW page
+        self.buttonSelectFolder2.clicked.connect(self.select_folder)
+        self.wfTree.itemSelectionChanged.connect(self.handle_tree_selection)
+        self.butRefreshTree.clicked.connect(self.populate_wfTree)
+        self.buttonConvertMattes.clicked.connect(self.convert_mattes_wrapper)
+        
+        # DEBUG page
+        self.commandLineEdit.returnPressed.connect(self.send_command_line)
+        self.buttonSend.clicked.connect(self.send_command_line)
+        self.buttonHelp.clicked.connect(self.send_command_help)
+
+        # Left Main menu
+        self.stackedWidget = self.findChild(QWidget, "fMain")
+        self.nav_buttons = [
+            self.butConnect,  
+            self.butMachineSetup,    
+            self.butExperimentSetup,    
+            self.butMeasure,  
+            self.butView,     
+            self.butDebug     
+        ]
+        self.stackedWidget.currentChanged.connect(self.pageChanged)
+        # Connect buttons to switch pages by name
+        self.butConnect.clicked.connect(lambda: self.switch_page("Connect", self.butConnect))
+        self.butMachineSetup.clicked.connect(lambda: self.switch_page("MachineSetup", self.butMachineSetup))
+        self.butExperimentSetup.clicked.connect(lambda: self.switch_page("ExperimentSetup", self.butExperimentSetup))
+        self.butMeasure.clicked.connect(lambda: self.switch_page("Measure", self.butMeasure))
+        self.butView.clicked.connect(lambda: self.switch_page("View", self.butView))
+        self.butDebug.clicked.connect(lambda: self.switch_page("Debug", self.butDebug))
+        self.butMachineSetup.setEnabled(False)
+        self.butExperimentSetup.setEnabled(False)
+        self.butMeasure.setEnabled(False)
+        self.butDebug.setEnabled(False)
+        self.switch_page("Connect", self.butConnect)
+
+        # Add secret keyboard shortcut to trigger dummy_measurement()
+        self.secret_shortcut = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_D), self)
+        self.secret_shortcut.activated.connect(self.dummy_measurement)
+        # dummy connect
+        self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
+        self.secret_shortcut_connect.activated.connect(self.dummy_connect)
+
+    def set_icons_manual(self):
         #set button icons
         # text to nothing
         self.buttonUp.setText("")
@@ -97,88 +166,14 @@ class TyhmosControlApp(QMainWindow):
         self.buttonDown.setIconSize(arrow1.size())
         self.buttonUp2.setIconSize(arrow2.size())
         self.buttonDown2.setIconSize(arrow2.size())
-        # Button Press Event
-        VEL_MAN_SLOW = 5
-        VEL_MAN_FAST = 50
-        self.buttonUp.pressed.connect(lambda: self.start_moving(VEL_MAN_SLOW))
-        self.buttonDown.pressed.connect(lambda: self.start_moving(-VEL_MAN_SLOW))
-        self.buttonUp2.pressed.connect(lambda: self.start_moving(VEL_MAN_FAST))
-        self.buttonDown2.pressed.connect(lambda: self.start_moving(-VEL_MAN_FAST))
-        # Button Release Event
-        self.buttonUp.released.connect(lambda: self.stop_moving())
-        self.buttonDown.released.connect(lambda: self.stop_moving())
-
-        self.butRefresh.clicked.connect(self.populate_serial_ports)
-
-        self.buttonSelectFolder.clicked.connect(self.select_folder)
-        self.buttonSelectFolder2.clicked.connect(self.select_folder)
-
-        self.buttonConvertMattes.clicked.connect(self.convert_mattes_wrapper)
-
-        # Set default label for connection status
-        self.labelConnection.setText("Not Connected")
-
-        # Setup graph for real-time plotting
-        self.setup_graph_timebased()
-        self.setup_graph_positionbased()
-
-        self.measurement_state = "ready"
-
-        # Placeholder for graph data
-        self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
-        # Stores position-based data for 3 loadcells
-        self.graph_pos_data = self.INIT_POS_DATA.clone()
-        self.last_pos = 0
-
-        self.currentForce = 0
-        self.currentPos = 0
-        self.maxExpForce = 0
-
-        self.SampleIndexManual = True
-        self.numSampleIndex.valueChanged.connect(self.update_sample_index)
-
-
-        # Get the StackedWidget
-        self.stackedWidget = self.findChild(QWidget, "fMain")
-
-        self.nav_buttons = [
-            self.butConnect,  
-            self.butMachineSetup,    
-            self.butExperimentSetup,    
-            self.butMeasure,  
-            self.butView,     
-            self.butDebug     
-        ]
-
-        # check page changed
-        self.stackedWidget.currentChanged.connect(self.pageChanged)
-
-        # Connect buttons to switch pages by name
-        self.butConnect.clicked.connect(lambda: self.switch_page("Connect", self.butConnect))
-        self.butMachineSetup.clicked.connect(lambda: self.switch_page("MachineSetup", self.butMachineSetup))
-        self.butExperimentSetup.clicked.connect(lambda: self.switch_page("ExperimentSetup", self.butExperimentSetup))
-        self.butMeasure.clicked.connect(lambda: self.switch_page("Measure", self.butMeasure))
-        self.butView.clicked.connect(lambda: self.switch_page("View", self.butView))
-        self.butDebug.clicked.connect(lambda: self.switch_page("Debug", self.butDebug))
-        self.butMachineSetup.setEnabled(False)
-        self.butExperimentSetup.setEnabled(False)
-        self.butMeasure.setEnabled(False)
-        self.butDebug.setEnabled(False)
-
-        # Set the initial button highlight
-        self.switch_page("Connect", self.butConnect)
-        # Add secret keyboard shortcut to trigger dummy_measurement()
-        self.secret_shortcut = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_D), self)
-        self.secret_shortcut.activated.connect(self.dummy_measurement)
-        # dummy connect
-        self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
-        self.secret_shortcut_connect.activated.connect(self.dummy_connect)
 
     def pageChanged(self):
         """Update the button highlight when the page changes."""
         current_page = self.stackedWidget.currentWidget()
         page_name = current_page.objectName()
-        if page_name == "ExperimentSetup":
+        if page_name == "Connect":
+            self.populate_serial_ports()
+        elif page_name == "ExperimentSetup":
             self.inputExperimentDate.setDateTime(QDateTime.currentDateTime())
         elif page_name == "View":
             self.populate_wfTree()
@@ -220,7 +215,7 @@ class TyhmosControlApp(QMainWindow):
             "loadcell3": pl.Series("loadcell3", [None, None, None], dtype=pl.Float64),
         })
         # dummy metadata
-        self.maxExpForce = max(self.graph_pos_data["loadcell1"].max() , self.graph_pos_data["loadcell2"].max(), self.graph_pos_data["loadcell3"].max())
+        self.maxExpForce = self.graph_pos_data["loadcell2"].max()
         # finish
         self.draw_graph()
         self.set_measurement_state("COMPLETED")
@@ -434,6 +429,7 @@ class TyhmosControlApp(QMainWindow):
         self.set_measurement_state("MEASURING")
 
     def measurementStop(self):
+        """ Manual stop of the experiment."""
         # stop experiment
         self.send_command("EXP STOP")
         # move to intial position
