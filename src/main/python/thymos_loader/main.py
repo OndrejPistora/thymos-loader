@@ -751,25 +751,46 @@ class TyhmosControlApp(QMainWindow):
 
     def populate_wfTree(self):
         """Populate wfTree with files and subfolders in the working directory."""
+
         if not self.selected_folder:
             self.show_message("Please select a folder first.", error=True)
-        self.wfTree.clear()  # Clear previous entries
+            return
+
+        # save currently selected items
+        selected_paths = []
+        for item in self.wfTree.selectedItems():
+            path = item.data(0, Qt.ItemDataRole.UserRole)
+            if path:
+                selected_paths.append(path)
+
+        self.wfTree.clear()
 
         def add_items(parent, path):
             for item in sorted(os.listdir(path)):
                 item_path = os.path.join(path, item)
-                if os.path.isdir(item_path):  # Keep directories for navigation
+                if os.path.isdir(item_path):
                     tree_item = QTreeWidgetItem(parent, [item])
                     tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
                     add_items(tree_item, item_path)
-                elif item.endswith(".csv") or item.endswith(".xlsx"): # Only include CSV and xlsx files
+                elif item.endswith((".csv", ".xlsx")):
                     tree_item = QTreeWidgetItem(parent, [item])
                     tree_item.setData(0, Qt.ItemDataRole.UserRole, item_path)
 
+        # Refresh the tree with the selected folder
         root_item = QTreeWidgetItem(self.wfTree, [self.selected_folder])
         root_item.setData(0, Qt.ItemDataRole.UserRole, self.selected_folder)
         add_items(root_item, self.selected_folder)
-        self.wfTree.expandAll()  # Expand all items
+        self.wfTree.expandAll()
+
+        # try to restore selection
+        def restore_selection(item):
+            path = item.data(0, Qt.ItemDataRole.UserRole)
+            if path in selected_paths:
+                item.setSelected(True)
+            for i in range(item.childCount()):
+                restore_selection(item.child(i))
+
+        restore_selection(root_item)
 
     def handle_tree_selection(self):
         """Ensure folder and file selection consistency based on user actions."""
