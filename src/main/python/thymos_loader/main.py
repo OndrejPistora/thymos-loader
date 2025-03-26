@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt
 from serial import Serial
 from serial.tools import list_ports
 from convertmattes import convert_mattes
+from config import Config
 import pyqtgraph as pg
 import csv
 import os
@@ -141,6 +142,20 @@ class TyhmosControlApp(QMainWindow):
         # dummy connect
         self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
         self.secret_shortcut_connect.activated.connect(self.dummy_connect)
+
+        # CONFIG
+        self.config = Config("config.yaml")
+
+        # Bind widgets
+        # CONNECT page
+        self.config.bind_checkbox(self.checkBox_autoSave, "auto_save", default=True)
+        # MACHINE SETUP page
+        self.config.bind_lineedit(self.lineEdit_path, "last_path", default="")
+        self.config.bind_spinbox(self.spinBox_retries, "max_retries", default=3)
+        # Bind variables
+        # ToDo
+        # token = self.config.bind_variable("auth_token", default=None)
+        # self.config.set_variable("auth_token", "abc123")
 
     def set_icons_manual(self):
         #set button icons
