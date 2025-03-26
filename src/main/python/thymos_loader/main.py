@@ -145,17 +145,28 @@ class TyhmosControlApp(QMainWindow):
 
         # CONFIG
         self.config = Config("config.yaml")
-
-        # Bind widgets
+        # Bind widgets and variables to config
         # CONNECT page
-        self.config.bind_checkbox(self.checkBox_autoSave, "auto_save", default=True)
-        # MACHINE SETUP page
-        self.config.bind_lineedit(self.lineEdit_path, "last_path", default="")
-        self.config.bind_spinbox(self.spinBox_retries, "max_retries", default=3)
-        # Bind variables
         # ToDo
-        # token = self.config.bind_variable("auth_token", default=None)
-        # self.config.set_variable("auth_token", "abc123")
+        # MACHINE SETUP page
+        self.config.bind_checkbox(self.lcEnable1, "machine setup.loadcell1.enable", default=True)
+        self.config.bind_checkbox(self.lcEnable2, "machine setup.loadcell2.enable", default=True)
+        self.config.bind_checkbox(self.lcEnable3, "machine setup.loadcell3.enable", default=True)
+        # EXPERIMENT SETUP page
+        # ToDo folder
+        # parameters
+        self.config.bind_spinbox(self.numExperimentDistance,         "experiment setup.parameters.distance")
+        self.config.bind_spinbox(self.numExperimentSpeed,            "experiment setup.parameters.speed")
+        self.config.bind_spinbox(self.numExperimentForceDrop,        "experiment setup.parameters.force drop")
+        self.config.bind_spinbox(self.numExperimentForceDropPercent, "experiment setup.parameters.force drop percent")
+        self.config.bind_spinbox(self.numExperimentSafeForce,        "experiment setup.parameters.safe force")
+        self.config.bind_checkbox(self.checkBoxPhotosEnable,         "experiment setup.parameters.photos.enable")
+        self.config.bind_spinbox(self.numPhotosFrequency,            "experiment setup.parameters.photos.frequency")
+        # description
+        self.config.bind_lineedit(self.inputExperimentTitle,         "experiment setup.description.title")
+        self.config.bind_lineedit(self.inputExperimentAuthor,        "experiment setup.description.author")
+        self.config.bind_lineedit(self.inputExperimentDescription,   "experiment setup.description.description")
+
 
     def set_icons_manual(self):
         #set button icons

@@ -21,12 +21,31 @@ class Config:
         with open(self.path, "w") as f:
             yaml.dump(self.data, f, default_flow_style=False)
 
-    def get(self, key, default=None):
-        return self.data.get(key, default)
+    def get(self, dotted_key, default=None):
+        keys = dotted_key.split(".")
+        current = self.data
+        for key in keys:
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        return current
 
-    def set(self, key, value):
-        self.data[key] = value
-        self.save()
+    def set(self, dotted_key, value):
+        keys = dotted_key.split(".")
+        current = self.data
+        for key in keys[:-1]:
+            if key not in current or not isinstance(current[key], dict):
+                current[key] = {}
+            current = current[key]
+
+        last_key = keys[-1]
+        old_value = current.get(last_key)
+
+        if old_value != value:
+            current[last_key] = value
+            self.save()
+            self.value_changed.emit(dotted_key, value)
 
     # ========== Binding Widgets ==========
     # QSpinBox

@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -1078,6 +1078,9 @@ Setup</string>
                  </item>
                  <item>
                   <widget class="QDoubleSpinBox" name="numExperimentForceDrop">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum force from which will be &amp;quot;force drop&amp;quot; detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
                    <property name="showGroupSeparator" stdset="0">
                     <bool>false</bool>
                    </property>
@@ -1097,6 +1100,9 @@ Setup</string>
                  </item>
                  <item>
                   <widget class="QDoubleSpinBox" name="numExperimentForceDropPercent">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a &amp;quot;force drop&amp;quot; is detected the machine will finish running experiment and return the crossbar to initial position. &lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
                    <property name="showGroupSeparator" stdset="0">
                     <bool>false</bool>
                    </property>
@@ -1143,6 +1149,57 @@ Setup</string>
                    </property>
                    <property name="maximum">
                     <double>10000.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>5000.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_21">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A camera can be connected to the main board via a jack-jack cable. The loading machine will trigger the camera to take photos during an experiment. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Camera</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkBoxPhotosEnable">
+                   <property name="text">
+                    <string>Take photos</string>
+                   </property>
+                   <property name="tristate">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="numPhotosFrequency">
+                   <property name="showGroupSeparator" stdset="0">
+                    <bool>false</bool>
+                   </property>
+                   <property name="suffix">
+                    <string> Hz</string>
+                   </property>
+                   <property name="decimals">
+                    <number>0</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.010000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>1.000000000000000</double>
                    </property>
                   </widget>
                  </item>
