@@ -5,23 +5,24 @@ class Config:
     def __init__(self, path="config.yaml"):
         self.path = Path(path)
         self.data = {}
-        self.load()
+        self.load_config()
 
-    def load(self):
+    def load_config(self):
         if self.path.exists():
             with open(self.path, "r") as f:
                 self.data = yaml.safe_load(f) or {}
+                print(self.data)
         else:
             # Create a new file if it doesn't exist
             print("Config file not found, creating a new one.")
             self.data = {}
-            self.save()
+            self.save_config()
 
-    def save(self):
+    def save_config(self):
         with open(self.path, "w") as f:
-            yaml.dump(self.data, f, default_flow_style=False)
+            yaml.dump(self.data, f, default_flow_style=False, sort_keys=False)
 
-    def get(self, dotted_key, default=None):
+    def load(self, dotted_key, default=None):
         keys = dotted_key.split(".")
         current = self.data
         for key in keys:
@@ -31,7 +32,7 @@ class Config:
                 return default
         return current
 
-    def set(self, dotted_key, value):
+    def save(self, dotted_key, value):
         keys = dotted_key.split(".")
         current = self.data
         for key in keys[:-1]:
@@ -44,8 +45,7 @@ class Config:
 
         if old_value != value:
             current[last_key] = value
-            self.save()
-            self.value_changed.emit(dotted_key, value)
+            self.save_config()
 
     # ========== Binding Widgets ==========
     # QSpinBox
@@ -55,18 +55,18 @@ class Config:
     # QTextEdit
 
     def bind_checkbox(self, checkbox, key, default=False):
-        checkbox.setChecked(self.get(key, default))
-        checkbox.stateChanged.connect(lambda state: self.set(key, bool(state)))
+        checkbox.setChecked(self.load(key, default))
+        checkbox.stateChanged.connect(lambda state: self.save(key, bool(state)))
 
     def bind_lineedit(self, lineedit, key, default=""):
         """Bind a QLineEdit or QTextEdit to a config key."""
-        lineedit.setText(self.get(key, default))
-        lineedit.textChanged.connect(lambda text: self.set(key, text))
+        lineedit.setText(self.load(key, default))
+        lineedit.textChanged.connect(lambda text: self.save(key, text))
 
     def bind_spinbox(self, spinbox, key, default=0):
         """Bind a QSpinBox or QDoubleSpinBox to a config key."""
-        spinbox.setValue(self.get(key, default))
-        spinbox.valueChanged.connect(lambda val: self.set(key, val))
+        spinbox.setValue(self.load(key, default))
+        spinbox.valueChanged.connect(lambda val: self.save(key, val))
 
     # def bind_combobox(self, combobox, key, default_index=0):
     #     index = self.get(key, default_index)
@@ -76,7 +76,7 @@ class Config:
 
     # ========== Binding variables ==========
     def bind_variable(self, key, default=None):
-        return self.get(key, default)
+        return self.load(key, default)
 
     def set_variable(self, key, value):
-        self.set(key, value)
+        self.save(key, value)

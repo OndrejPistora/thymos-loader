@@ -27,6 +27,9 @@ class TyhmosControlApp(QMainWindow):
         self.resources = resources
         self.showMaximized()
 
+        # CONFIG
+        self.config = Config("config.yaml")
+
         self.serial = None  # Placeholder for Serial connection
         self.connected = False
         self.serial_buffer = ""
@@ -144,17 +147,19 @@ class TyhmosControlApp(QMainWindow):
         self.secret_shortcut_connect = QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_C), self)
         self.secret_shortcut_connect.activated.connect(self.dummy_connect)
 
-        # CONFIG
-        self.config = Config("config.yaml")
         # Bind widgets and variables to config
         # CONNECT page
+        # serial_port save is in function "populate_serial_ports"
         # ToDo
+        # serial_port load is in function "connect_serial"
         # MACHINE SETUP page
         self.config.bind_checkbox(self.lcEnable1, "machine setup.loadcell1.enable", default=True)
         self.config.bind_checkbox(self.lcEnable2, "machine setup.loadcell2.enable", default=True)
         self.config.bind_checkbox(self.lcEnable3, "machine setup.loadcell3.enable", default=True)
         # EXPERIMENT SETUP page
-        # ToDo folder
+        # folder save is in function "select_folder"
+        self.selected_folder = self.config.load("experiment setup.folder")
+        self.labOutFolder.setText(self.selected_folder)
         # parameters
         self.config.bind_spinbox(self.numExperimentDistance,         "experiment setup.parameters.distance")
         self.config.bind_spinbox(self.numExperimentSpeed,            "experiment setup.parameters.speed")
@@ -317,7 +322,14 @@ class TyhmosControlApp(QMainWindow):
         for port in ports:
             self.serialPortSelection.addItem(port.device)
         if ports:
-            self.serialPortSelection.setCurrentIndex(0)
+            # set selected as from config
+            last_selected_port = self.config.load("serial.port")
+            print(f"Last selected port: {last_selected_port}")
+            print(f"ports: {ports}")
+            if self.serialPortSelection.findText(last_selected_port):
+                self.serialPortSelection.setCurrentText(last_selected_port)
+            else:
+                self.serialPortSelection.setCurrentIndex(0)
             self.buttonConnect.setEnabled(True)
         else:
             self.serialPortSelection.addItem("No serial ports found. Please connect a device.")
@@ -339,7 +351,8 @@ class TyhmosControlApp(QMainWindow):
                 self.serial_read_timer.start(10)  # Start reading every 10ms
                 self.graph_timer.start(50)  # draw graphs 20 Hz
                 self.set_connection_status(True)
-                # send command to start receiving data
+                # save selected port to config
+                self.config.save("serial.port", selected_port)
                 # INIT COMMANDS
                 self.send_command("DATAC 1")
                 self.send_command("MC SET SPEEDMM 5")
@@ -503,6 +516,7 @@ class TyhmosControlApp(QMainWindow):
         folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
         if folder:  # If user selected a folder
             self.selected_folder = folder
+            self.config.save("experiment setup.folder", folder)
             self.labOutFolder.setText(folder)
 
     def save_to_csv(self, pos_data, folder, filename, metadata):
