@@ -2,4 +2,5 @@ PyQt6
 pyserial
 pyqtgraph
 polars
+openpyxl
 fbs_pro-1.2.7.tar.gz
