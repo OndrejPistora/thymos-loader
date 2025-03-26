@@ -110,6 +110,11 @@ class TyhmosControlApp(QMainWindow):
         self.wfTree.itemSelectionChanged.connect(self.handle_tree_selection)
         self.butRefreshTree.clicked.connect(self.populate_wfTree)
         self.buttonConvertMattes.clicked.connect(self.convert_mattes_wrapper)
+        # graph menu
+        self.buttonViewAll.clicked.connect(lambda: self.graphView.plotItem.vb.autoRange())
+        self.buttonPanMode.clicked.connect(lambda: self.graphView.plotItem.vb.setMouseMode(pg.ViewBox.PanMode))
+        self.buttonZoomMode.clicked.connect(lambda: self.graphView.plotItem.vb.setMouseMode(pg.ViewBox.RectMode))
+
         
         # DEBUG page
         self.commandLineEdit.returnPressed.connect(self.send_command_line)
