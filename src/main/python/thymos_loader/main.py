@@ -166,21 +166,21 @@ class TyhmosControlApp(QMainWindow):
         self.selected_folder = self.config.load("experiment setup.folder")
         self.labOutFolder.setText(self.selected_folder)
         # parameters
-        self.config.bind_spinbox(self.numExperimentDistance,         "experiment setup.parameters.distance")
-        self.config.bind_spinbox(self.numExperimentSpeed,            "experiment setup.parameters.speed")
-        self.config.bind_spinbox(self.numExperimentForceDrop,        "experiment setup.parameters.force drop")
-        self.config.bind_spinbox(self.numExperimentForceDropPercent, "experiment setup.parameters.force drop percent")
-        self.config.bind_spinbox(self.numExperimentSafeForce,        "experiment setup.parameters.safe force")
-        self.config.bind_checkbox(self.checkBoxPhotosEnable,         "experiment setup.parameters.photos.enable")
-        self.config.bind_spinbox(self.numPhotosFrequency,            "experiment setup.parameters.photos.frequency")
-        # description
-        self.config.bind_lineedit(self.inputExperimentTitle,         "experiment setup.description.title")
-        self.config.bind_lineedit(self.inputExperimentAuthor,        "experiment setup.description.author")
-        self.config.bind_lineedit(self.inputExperimentDescription,   "experiment setup.description.description")
+        self.config.bind_spinbox(self.numExperimentDistance,             "experiment setup.parameters.distance")
+        self.config.bind_spinbox(self.numExperimentSpeed,                "experiment setup.parameters.speed")
+        self.config.bind_spinbox(self.numExperimentForceDrop,            "experiment setup.parameters.force drop")
+        self.config.bind_spinbox(self.numExperimentForceDropPercent,     "experiment setup.parameters.force drop percent")
+        self.config.bind_spinbox(self.numExperimentSafeForce,            "experiment setup.parameters.safe force")
+        self.config.bind_checkbox(self.checkBoxPhotosEnable,             "experiment setup.parameters.photos.enable")
+        self.config.bind_spinbox(self.numPhotosFrequency,                "experiment setup.parameters.photos.frequency")
+        # description    
+        self.config.bind_lineedit(self.inputExperimentTitle,             "experiment setup.description.title")
+        self.config.bind_lineedit(self.inputExperimentAuthor,            "experiment setup.description.author")
+        self.config.bind_configtextedit(self.inputExperimentDescription, "experiment setup.description.description")
 
 
     def set_icons_manual(self):
-        #set button icons
+        # set button icons
         # text to nothing
         self.buttonUp.setText("")
         self.buttonDown.setText("")

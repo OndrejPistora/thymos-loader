@@ -21,3 +21,4 @@ experiment setup:
   description:
     author: Ondrej
     title: test
+    description: desc

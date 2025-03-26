@@ -59,10 +59,14 @@ class Config:
         checkbox.stateChanged.connect(lambda state: self.save(key, bool(state)))
 
     def bind_lineedit(self, lineedit, key, default=""):
-        """Bind a QLineEdit or QTextEdit to a config key."""
         lineedit.setText(self.load(key, default))
-        lineedit.textChanged.connect(lambda text: self.save(key, text))
+        lineedit.editingFinished.connect(lambda: self.save(key, lineedit.text()))
 
+    # text edits need to be promoted to ConfigTextEdit so we have editingFinished event
+    def bind_configtextedit(self, textedit, key, default=""):
+        textedit.setPlainText(self.load(key, default))
+        textedit.editingFinished.connect(lambda: self.save(key, textedit.toPlainText()))
+        
     def bind_spinbox(self, spinbox, key, default=0):
         """Bind a QSpinBox or QDoubleSpinBox to a config key."""
         spinbox.setValue(self.load(key, default))

@@ -1257,7 +1257,7 @@ Setup</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QTextEdit" name="inputExperimentDescription"/>
+                  <widget class="ConfigTextEdit" name="inputExperimentDescription"/>
                  </item>
                 </layout>
                </widget>
@@ -1977,6 +1977,11 @@ Setup</string>
    <class>ZeroProgressBar</class>
    <extends>QProgressBar</extends>
    <header>zeroprogressbar</header>
+  </customwidget>
+  <customwidget>
+   <class>ConfigTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>configtextedit</header>
   </customwidget>
  </customwidgets>
  <tabstops>
