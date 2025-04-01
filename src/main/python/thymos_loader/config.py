@@ -11,7 +11,7 @@ class Config:
         if self.path.exists():
             with open(self.path, "r") as f:
                 self.data = yaml.safe_load(f) or {}
-                print(self.data)
+                # print(self.data)
         else:
             # Create a new file if it doesn't exist
             print("Config file not found, creating a new one.")
@@ -69,7 +69,10 @@ class Config:
         
     def bind_spinbox(self, spinbox, key, default=0):
         """Bind a QSpinBox or QDoubleSpinBox to a config key."""
+        # disable emiting valueChanged signal when setting the value
+        spinbox.blockSignals(True)
         spinbox.setValue(self.load(key, default))
+        spinbox.blockSignals(False)
         spinbox.valueChanged.connect(lambda val: self.save(key, val))
 
     # def bind_combobox(self, combobox, key, default_index=0):

@@ -65,7 +65,6 @@ class TyhmosControlApp(QMainWindow):
         # Stores position-based data for 3 loadcells
         self.graph_pos_data = self.INIT_POS_DATA.clone()
 
-        self.currentForce = 0
         self.currentPos = 0
         self.maxExpForce = 0
 
@@ -81,6 +80,7 @@ class TyhmosControlApp(QMainWindow):
         self.buttonTare2.clicked.connect(lambda: self.send_command_tare(2))
         self.buttonTare3.clicked.connect(lambda: self.send_command_tare(3))
         self.buttonHome.clicked.connect(self.send_command_home)
+        self.numAcqInterval.valueChanged.connect(lambda: self.send_command_set_acq_interval(self.numAcqInterval.value()))
 
         # EXPERIMENT SETUP page
         self.buttonSelectFolder.clicked.connect(self.select_folder)
@@ -160,6 +160,7 @@ class TyhmosControlApp(QMainWindow):
         self.config.bind_checkbox(self.lcEnable1, "machine setup.loadcell1.enable", default=True)
         self.config.bind_checkbox(self.lcEnable2, "machine setup.loadcell2.enable", default=True)
         self.config.bind_checkbox(self.lcEnable3, "machine setup.loadcell3.enable", default=True)
+        self.config.bind_spinbox(self.numAcqInterval, "machine setup.acquisition interval", default=0.1)
         # EXPERIMENT SETUP page
         # folder save is in function "select_folder"
         self.selected_folder = self.config.load("experiment setup.folder")
@@ -362,6 +363,7 @@ class TyhmosControlApp(QMainWindow):
                 self.send_command("DATAC 1")
                 self.send_command("MC SET SPEEDMM 5")
                 self.send_command("MC SET ACCEL 1000")
+                self.send_command_set_acq_interval(self.numAcqInterval.value())
                 # enable pages which require connection
                 self.butMachineSetup.setEnabled(True)
                 self.butExperimentSetup.setEnabled(True)
@@ -562,14 +564,15 @@ class TyhmosControlApp(QMainWindow):
                 enabled_cols.append("loadcell2")
             if self.lcEnable3.isChecked():
                 enabled_cols.append("loadcell3")
-            self.graph_pos_data = self.graph_pos_data.select(enabled_cols)
+            graph_data = self.graph_pos_data
+            graph_data = graph_data.select(enabled_cols)
             # Fill null values with 0
             print(self.graph_pos_data)
-            self.graph_pos_data = self.graph_pos_data.with_columns(pl.all().cast(pl.Float64))
-            self.graph_pos_data = self.graph_pos_data.fill_null(0)
-            print(self.graph_pos_data)
-            writer.writerow(self.graph_pos_data.columns)
-            writer.writerows(self.graph_pos_data.iter_rows())
+            graph_data = graph_data.with_columns(pl.all().cast(pl.Float64))
+            graph_data = graph_data.fill_null(0)
+            print(graph_data)
+            writer.writerow(graph_data.columns)
+            writer.writerows(graph_data.iter_rows())
             self.flash_background(self.lSaveState)
 
         print(f"Data saved successfully to {filepath}")
@@ -642,25 +645,25 @@ class TyhmosControlApp(QMainWindow):
     def send_command_tare(self, lc_num):
         self.send_command(f"LC TARE {lc_num - 1}")
 
-    def check_experiment_stop(self):
-        if abs(self.currentForce) > self.numExperimentForceDrop.value():
-            if abs(self.currentForce) < abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100)):
+    def send_command_set_acq_interval(self, interlval_sec):
+        self.send_command(f"DATA SET INTERVAL {interlval_sec * 1_000_000}")
+
+    def check_experiment_stop(self, force):
+        if abs(force) > self.numExperimentForceDrop.value():
+            # print(f"lim: {abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100))}")
+            if abs(force) < abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100)):
                 self.send_command("EXP STOP")
                 self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
                 self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
-                self.exp_stop_timer.stop()
 
     def send_command_experiment_standard(self, dist, speed, max_force):
         # save initial position
         self.initial_exp_position = self.currentPos
         self.maxExpForce = 0
+        # set return speed
+        self.send_command("MC SET SPEEDMM 5")
         # run experiment
         self.send_command(f"EXP STANDARD {dist} {speed} {max_force} 1 1 0")
-        # stop experiment if force_decrease_to_stop is reached or max_force is reached or distance is reached
-        # start timer to check experiment stop
-        self.exp_stop_timer = QTimer()
-        self.exp_stop_timer.timeout.connect(self.check_experiment_stop)
-        self.exp_stop_timer.start(10)
 
     def send_command_line(self):
         """Send a command manually entered in the commandLineEdit."""
@@ -702,7 +705,6 @@ class TyhmosControlApp(QMainWindow):
                         #print(x_data, y_data)
                         if any(y_data):
                             self.curves_pos[i].setData(x_data, y_data)
-                                
                     
         except Exception as e:
             print(f"Failed to draw graphs: {e}")
@@ -768,10 +770,12 @@ class TyhmosControlApp(QMainWindow):
                     self.currentPos = float(curPos)
                     curVel = float(data[2])
                     loadcells = [- float(data[3]), - float(data[4]), - float(data[5])]
-                    self.currentForce = loadcells[1]
-                    self.maxExpForce = max(self.maxExpForce, abs(loadcells[0]), abs(loadcells[1], abs(loadcells[2])))
                     # Convert from string to float for plotting
                     self.update_graphdata(loadcells, timestamp, curPos)
+                    if self.measurement_state == "MEASURING":
+                        self.maxExpForce = max(self.maxExpForce, abs(loadcells[1]))
+                        # print(f"self.maxExpForce: {self.maxExpForce} N")
+                        self.check_experiment_stop(loadcells[1])
                 # ToDo deal cases
                 # "limit machine force reached"
                 elif line.startswith("Target position reached."):

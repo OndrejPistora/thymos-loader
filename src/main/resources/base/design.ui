@@ -337,7 +337,7 @@ Setup</string>
           <enum>QFrame::NoFrame</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="Connect">
           <layout class="QGridLayout" name="gridLayout">
@@ -735,7 +735,7 @@ Setup</string>
            <item alignment="Qt::AlignTop">
             <widget class="QGroupBox" name="gbHome">
              <property name="title">
-              <string>Machine settings</string>
+              <string>Machine control</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
@@ -751,6 +751,38 @@ Setup</string>
                 </property>
                 <property name="text">
                  <string>Home</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignTop">
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Machine settings</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Data acquisition interval</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="numAcqInterval">
+                <property name="suffix">
+                 <string> s</string>
+                </property>
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="maximum">
+                 <double>10.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.001000000000000</double>
                 </property>
                </widget>
               </item>

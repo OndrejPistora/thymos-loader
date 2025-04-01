@@ -7,6 +7,7 @@ machine setup:
     enable: true
   loadcell3:
     enable: false
+  acquisition interval: 0.05
 experiment setup:
   folder: /Users/onpis/Documents/ExperimentalniCentrum/Zatezovak/TestMeasurements
   parameters:
