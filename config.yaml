@@ -1,5 +1,5 @@
 serial:
-  port: /dev/cu.Bluetooth-Incoming-Port
+  port: /dev/cu.usbmodem1301
 machine setup:
   loadcell1:
     enable: false
@@ -16,7 +16,7 @@ experiment setup:
     photos:
       enable: true
       frequency: 1.0
-    safe force: 5000.0
+    safe force: 50.0
     speed: 1.0
   description:
     author: Ondrej

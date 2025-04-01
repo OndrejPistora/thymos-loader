@@ -64,7 +64,6 @@ class TyhmosControlApp(QMainWindow):
         self.graph_time_data = [[], [], []]  # Stores time-based data for 3 loadcells
         # Stores position-based data for 3 loadcells
         self.graph_pos_data = self.INIT_POS_DATA.clone()
-        self.last_pos = 0
 
         self.currentForce = 0
         self.currentPos = 0
@@ -87,12 +86,12 @@ class TyhmosControlApp(QMainWindow):
         self.buttonSelectFolder.clicked.connect(self.select_folder)
         # manual movement buttons
         self.set_icons_manual()
-        VEL_MAN_SLOW = 5
+        VEL_MAN_SLOW = 1
         VEL_MAN_FAST = 50
-        self.buttonUp.pressed.connect(lambda: self.start_moving(VEL_MAN_SLOW))
-        self.buttonDown.pressed.connect(lambda: self.start_moving(-VEL_MAN_SLOW))
-        self.buttonUp2.pressed.connect(lambda: self.start_moving(VEL_MAN_FAST))
-        self.buttonDown2.pressed.connect(lambda: self.start_moving(-VEL_MAN_FAST))
+        self.buttonUp.pressed.connect(lambda: self.start_moving(-VEL_MAN_SLOW))
+        self.buttonDown.pressed.connect(lambda: self.start_moving(VEL_MAN_SLOW))
+        self.buttonUp2.pressed.connect(lambda: self.start_moving(-VEL_MAN_FAST))
+        self.buttonDown2.pressed.connect(lambda: self.start_moving(VEL_MAN_FAST))
         # Button Release Event
         self.buttonUp.released.connect(lambda: self.stop_moving())
         self.buttonUp2.released.connect(lambda: self.stop_moving())
@@ -231,7 +230,6 @@ class TyhmosControlApp(QMainWindow):
     def clear_graph(self):
         self.graph_pos_data = self.INIT_POS_DATA.clone()
         self.draw_graph(clear=True)
-        self.last_pos = 0
 
     def dummy_connect(self):
         self.graph_timer.start(50)  # draw graphs 20 Hz
@@ -322,15 +320,17 @@ class TyhmosControlApp(QMainWindow):
         """Populate the ComboBox with available serial ports."""
         self.serialPortSelection.clear()
         ports = list_ports.comports()
-        # filter out "/dev/" ports
-        ports = [port for port in ports if not port.device.startswith("/dev/")]
+        # for MAC filter out debug ports
+        # remove these ports
+        for debug in ["wlan-debug", "debug-console", "Bluetooth-Incoming-Port"]:
+            ports = [port for port in ports if debug not in port.device]
         for port in ports:
             self.serialPortSelection.addItem(port.device)
         if ports:
             # set selected as from config
             last_selected_port = self.config.load("serial.port")
-            print(f"Last selected port: {last_selected_port}")
-            print(f"ports: {ports}")
+            # print(f"Last selected port: {last_selected_port}")
+            # print(f"ports: {ports}")
             if self.serialPortSelection.findText(last_selected_port):
                 self.serialPortSelection.setCurrentText(last_selected_port)
             else:
@@ -447,7 +447,7 @@ class TyhmosControlApp(QMainWindow):
         elif transition == "FAILED":  # measurement failed on some limit
             self.measurement_state = "FAILED"
             self.lMeasurementState.setText("Failed")
-            self.lMeasurementState.setStyleSheet("background-color: lightred;")
+            self.lMeasurementState.setStyleSheet("background-color: red;")
             self.lMeasurementState2.setText(comment)
             self.buttonStart.setEnabled(False)
             self.buttonStop.setEnabled(False)
@@ -643,11 +643,12 @@ class TyhmosControlApp(QMainWindow):
         self.send_command(f"LC TARE {lc_num - 1}")
 
     def check_experiment_stop(self):
-        if self.currentForce < self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100) and self.currentForce > self.numExperimentForceDrop.value():
-            self.send_command("EXP STOP")
-            self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
-            self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
-            self.exp_stop_timer.stop()
+        if abs(self.currentForce) > self.numExperimentForceDrop.value():
+            if abs(self.currentForce) < abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100)):
+                self.send_command("EXP STOP")
+                self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
+                self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
+                self.exp_stop_timer.stop()
 
     def send_command_experiment_standard(self, dist, speed, max_force):
         # save initial position
@@ -721,7 +722,7 @@ class TyhmosControlApp(QMainWindow):
                 self.graph_time_data[i].append((timestamp, load))  # Store time-based data
                 self.graph_time_data[i] = self.graph_time_data[i][-DATA_POINTS:]
 
-            if curPos != self.last_pos and self.measurement_state == "measuring":
+            if self.measurement_state == "MEASURING":
                 new_row = pl.DataFrame({
                     "time": [timestamp],
                     "position": [curPos],
@@ -730,7 +731,6 @@ class TyhmosControlApp(QMainWindow):
                     "loadcell3": [loadcells[2]]
                 })
                 self.graph_pos_data = pl.concat([self.graph_pos_data, new_row])
-            self.last_pos = curPos
 
             # bargraphs
             self.loadcell1.setValue(int(loadcells[0]))
@@ -750,40 +750,38 @@ class TyhmosControlApp(QMainWindow):
     def read_serial_data(self):
         """Read data from the serial port and display it in the QTextEdit."""
         if self.connected and self.serial.in_waiting > 0:
-            try:
-                # Initialize a buffer to store incomplete lines
-                raw_data = self.serial.read(self.serial.in_waiting).decode()
-                self.serial_buffer += raw_data
-                lines = self.serial_buffer.split("\n")
-                self.serial_buffer = lines[-1]
+            # Initialize a buffer to store incomplete lines
+            raw_data = self.serial.read(self.serial.in_waiting).decode()
+            self.serial_buffer += raw_data
+            lines = self.serial_buffer.split("\n")
+            self.serial_buffer = lines[-1]
 
-                # Process all complete lines
-                for line in lines[:-1]:  # Skip the incomplete last line
-                    line = line.strip()
-                    if line.startswith("DS"):  # Process machine data (DATAC)
-                        # print(line)
-                        line = line.strip()[2:]
-                        data = line.split(",")
-                        timestamp = data[0]
-                        curPos = data[1]
-                        self.currentPos = curPos
-                        curVel = data[2]
-                        loadcells = [- data[3], - data[4], - data[5]]
-                        self.currentForce = loadcells[1]
-
-                        # Convert from string to float for plotting
-                        loadcells = [float(i) for i in loadcells]
-                        self.update_graphdata(loadcells, timestamp, curPos)
-                    # ToDo deal cases
-                    # "limit distance reached" 
-                    # "limit machine force reached"
-                    # "limit experiment force reached"
-                    elif line.startswith("Experiment stopped."):
-                        self.set_measurement_state("FAILED", "????.")
-                    else:  # Handle other data
-                        self.commandLineOutput.append(line)
-            except Exception as e:
-                self.show_message(f"Failed to read data: {e}", error=True)
+            # Process all complete lines
+            for line in lines[:-1]:  # Skip the incomplete last line
+                line = line.strip()
+                if line.startswith("DS"):  # Process machine data (DATAC)
+                    # print(line)
+                    line = line.strip()[2:]
+                    data = line.split(",")
+                    timestamp = data[0]
+                    curPos = float(data[1])
+                    self.currentPos = float(curPos)
+                    curVel = float(data[2])
+                    loadcells = [- float(data[3]), - float(data[4]), - float(data[5])]
+                    self.currentForce = loadcells[1]
+                    self.maxExpForce = max(self.maxExpForce, abs(loadcells[0]), abs(loadcells[1], abs(loadcells[2])))
+                    # Convert from string to float for plotting
+                    self.update_graphdata(loadcells, timestamp, curPos)
+                # ToDo deal cases
+                # "limit machine force reached"
+                elif line.startswith("Target position reached."):
+                    self.set_measurement_state("FAILED", "Target position reached.")
+                    self.commandLineOutput.append(line)
+                elif line.startswith("Target force of"):
+                    self.set_measurement_state("FAILED", "Max force reached.")
+                    self.commandLineOutput.append(line)
+                else:  # Handle other data
+                    self.commandLineOutput.append(line)
 
     def show_message(self, message, error=False):
         """Show a message box for errors or notifications."""
