@@ -153,7 +153,6 @@ class TyhmosControlApp(QMainWindow):
         # Bind widgets and variables to config
         # CONNECT page
         # serial_port save is in function "populate_serial_ports"
-        # ToDo
         # serial_port load is in function "connect_serial"
         # MACHINE SETUP page
         self.config.bind_checkbox(self.lcEnable1, "machine setup.loadcell1.enable", default=True)
@@ -167,8 +166,9 @@ class TyhmosControlApp(QMainWindow):
         # parameters
         self.config.bind_spinbox(self.numExperimentDistance,             "experiment setup.parameters.distance")
         self.config.bind_spinbox(self.numExperimentSpeed,                "experiment setup.parameters.speed")
-        self.config.bind_spinbox(self.numExperimentForceDrop,            "experiment setup.parameters.force drop")
-        self.config.bind_spinbox(self.numExperimentForceDropPercent,     "experiment setup.parameters.force drop percent")
+        self.config.bind_checkbox(self.checkBoxForceDropEnable,          "experiment setup.parameters.force drop.enable")
+        self.config.bind_spinbox(self.numExperimentForceDrop,            "experiment setup.parameters.force drop.limit")
+        self.config.bind_spinbox(self.numExperimentForceDropPercent,     "experiment setup.parameters.force drop.percent")
         self.config.bind_spinbox(self.numExperimentSafeForce,            "experiment setup.parameters.safe force")
         self.config.bind_checkbox(self.checkBoxPhotosEnable,             "experiment setup.parameters.photos.enable")
         self.config.bind_spinbox(self.numPhotosFrequency,                "experiment setup.parameters.photos.frequency")

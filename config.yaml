@@ -12,8 +12,10 @@ experiment setup:
   folder: /Users/onpis/Documents/ExperimentalniCentrum/Zatezovak/TestMeasurements
   parameters:
     distance: 20.0
-    force drop: 5.0
-    force drop percent: 30.0
+    force drop:
+      enable: true
+      limit: 5.0
+      percent: 30.0
     photos:
       enable: true
       frequency: 1.0
