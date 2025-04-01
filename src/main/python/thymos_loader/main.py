@@ -99,7 +99,7 @@ class TyhmosControlApp(QMainWindow):
 
         # MEASURE page
         self.buttonStart.clicked.connect(self.measurementStart)
-        self.buttonStop.clicked.connect(self.measurementStop)
+        self.buttonStop.clicked.connect(self.manualMeasurementStop)
         self.buttonSave.clicked.connect(self.saveExperimentData)
         self.buttonClear.clicked.connect(self.ask_clear)
 
@@ -476,14 +476,9 @@ class TyhmosControlApp(QMainWindow):
         # ToDo
         self.set_measurement_state("MEASURING")
 
-    def measurementStop(self):
+    def manualMeasurementStop(self):
         """ Manual stop of the experiment."""
-        # stop experiment
-        self.send_command("EXP STOP")
-        # move to intial position
-        self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
-        # stop checkign timer
-        self.exp_stop_timer.stop()
+        self.send_command_experiment_stop(True)
         # set state to stopped
         self.set_measurement_state("COMPLETED", "Stopped by user.")
 
@@ -647,18 +642,30 @@ class TyhmosControlApp(QMainWindow):
     def send_command_set_acq_interval(self, interlval_sec):
         self.send_command(f"DATA SET INTERVAL {interlval_sec * 1_000_000}")
 
-    def check_experiment_stop(self, force):
-        if abs(force) > self.numExperimentForceDrop.value():
-            # print(f"lim: {abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100))}")
-            if abs(force) < abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100)):
-                self.send_command("EXP STOP")
-                self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
-                self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
+    def check_force_drop(self, force):
+        if self.checkBoxForceDropEnable.isChecked():
+            if abs(force) > self.numExperimentForceDrop.value():
+                if abs(force) < abs(self.maxExpForce * (1 - self.numExperimentForceDropPercent.value()/100)):
+                    self.send_command_experiment_stop(True)
+                    self.set_measurement_state("COMPLETED", f"Force dropped by {self.numExperimentForceDropPercent.value()}%")
+                    
+    def send_command_experiment_stop(self, force_stop_and_return=False):
+        # stop capturing photos
+        self.send_command("DSLR STOP CYCLIC")
+        if force_stop_and_return:
+            # stop and return
+            self.send_command("EXP STOP")
+            self.send_command(f"MC MOVETO MACH {self.initial_exp_position}")
+
 
     def send_command_experiment_standard(self, dist, speed, max_force):
         # save initial position
         self.initial_exp_position = self.currentPos
         self.maxExpForce = 0
+        # start capturing photos
+        if self.checkBoxPhotosEnable.isChecked():
+            photo_interval_ms = 1000 / self.numPhotosFrequency.value()
+            self.send_command(f"DSLR START CYCLIC {photo_interval_ms}")
         # set return speed
         self.send_command("MC SET SPEEDMM 5")
         # run experiment
@@ -774,13 +781,14 @@ class TyhmosControlApp(QMainWindow):
                     if self.measurement_state == "MEASURING":
                         self.maxExpForce = max(self.maxExpForce, abs(loadcells[1]))
                         # print(f"self.maxExpForce: {self.maxExpForce} N")
-                        self.check_experiment_stop(loadcells[1])
-                # ToDo deal cases
-                # "limit machine force reached"
+                        self.check_force_drop(loadcells[1])
+                # ToDo deal with "limit machine force reached"
                 elif line.startswith("Target position reached."):
+                    self.send_command_experiment_stop()
                     self.set_measurement_state("FAILED", "Target position reached.")
                     self.commandLineOutput.append(line)
                 elif line.startswith("Target force of"):
+                    self.send_command_experiment_stop()
                     self.set_measurement_state("FAILED", "Max force reached.")
                     self.commandLineOutput.append(line)
                 else:  # Handle other data
