@@ -13,8 +13,7 @@ import csv
 import os
 import polars as pl
 import sys
-
-
+import re
 
 
 # class TyhmosControlApp(QMainWindow, Ui_MainWindow):
@@ -761,7 +760,7 @@ class TyhmosControlApp(QMainWindow):
             # Process all complete lines
             for line in lines[:-1]:  # Skip the incomplete last line
                 line = line.strip()
-                if line.startswith("DS"):  # Process machine data (DATAC)
+                if re.match(r"^DS\d+,.+", line):  # Process machine data (DATAC)
                     # print(line)
                     line = line.strip()[2:]
                     data = line.split(",")
